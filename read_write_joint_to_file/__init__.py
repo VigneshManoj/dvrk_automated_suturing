@@ -1,1 +1,1 @@
-from read_joint_to_file import MoveDVRKArm
+from read_joint_to_file import DataCollection

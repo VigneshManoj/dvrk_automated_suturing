@@ -1,6 +1,6 @@
 # # import dvrk
 # # import PyKDL
-# # from read_write_joint_to_file import MoveDVRKArm
+from read_write_joint_to_file import DataCollection
 # #
 # # # Create a Python proxy for PSM1, name must match ros namespace
 # # # p = dvrk.psm('PSM1')
@@ -73,3 +73,6 @@
 # # 	csv.write(row)
 # #
 # #
+
+obj = DataCollection(10)
+obj.read_joint_write_file()

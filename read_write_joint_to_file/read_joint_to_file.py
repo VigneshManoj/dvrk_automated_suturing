@@ -33,16 +33,19 @@ class DataCollection:
             # Read joint positions of dvrk arm
             current_pos = p.get_current_joint_position()
             print("\nThe current joint position is ", current_pos, "\n")
+            row_data = str(current_pos[0])
             # Write the data to file
             # For writing each joint position value
             for i in range(1, 6):
-                # row =  current_pos[0] + "," + current_pos[1] + "," + current_pos[2] + "," + current_pos[3] + "," + current_pos[4] + "," + current_pos[5]"\n"
-                row = str(current_pos[0])
-                row += "," + str(current_pos[i])
+                row_data += "," + str(current_pos[i])
+                print("\n I value is ", i, "\n")
                 # New set of data starts in a new line
-                if i == 6:
-                    row += "\n"
-                csv.write(row)
+                if i == 5:
+                    row_data = row_data + "\n"
+                    print("reached inside the next line")
+            # Finally write the data in row_data to the csv file
+            csv.write(row_data)
+            # Decides at what rate the data is written to the csv file
             rate.sleep()
 
 
