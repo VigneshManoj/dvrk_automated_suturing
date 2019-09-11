@@ -18,13 +18,13 @@ class DataCollection:
         rate = rospy.Rate(self.loop_rate)
         # Create a Python proxy for PSM1, name must match ros namespace
         p = dvrk.psm('PSM1')
-        p.home()
         # p.move_joint_one(0.05, 0)
         # Location of file storage
         data_file_dir = "/home/aimlabx/PycharmProjects/dvrk_automated_suturing/data/dvrk_joint_data.csv"
         csv = open(data_file_dir, "a")
         # For writing the heading to the csv file
         if self.file_heading_exits == 0:
+            p.home()
             column_title = "Pos Joint 1, Pos Joint 2, Pos Joint 3, Pos Joint 4, Pos Joint 5, Pos Joint 6, " \
                            "Vel Joint 1, Vel Joint 2, Vel Joint 3, Vel Joint 4, Vel Joint 5, Vel Joint 6 \n"
             csv.write(column_title)
@@ -37,7 +37,7 @@ class DataCollection:
             current_vel = p.get_current_joint_velocity()
             # print("\nThe current joint position is ", current_pos, "\n")
             # print("\nThe current joint position is ", current_vel, "\n")
-            
+
             # Initialize the row data with joint 0 position
             row_data = str(current_pos[0])
             # Write the data to file
@@ -58,5 +58,14 @@ class DataCollection:
             # Decides at what rate the data is written to the csv file
             rate.sleep()
 
+
+    def read_from_txt_file(self):
+        # Path of the folder containing the data
+        txt_file_dir = "/home/aimlabx/Downloads/Thesis/JIGSAWS/Suturing/kinematics/AllGestures/Suturing_I001.txt"
+        # Open the file
+        open_txt_file = open(txt_file_dir, "r")
+        # Reads all the lines and stores it and returns the data
+        concat_lines = open_txt_file.readlines()
+        return concat_lines
 
 
