@@ -13,7 +13,7 @@ class DataCollection:
     def __init__(self, loop_rate):
         self.loop_rate = loop_rate
 
-    def read_joint_write_file(self):
+    def dvrk_data_write_to_file(self):
         rospy.init_node('read_write_data_dvrk')
         rate = rospy.Rate(self.loop_rate)
         # Create a Python proxy for PSM1, name must match ros namespace

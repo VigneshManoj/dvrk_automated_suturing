@@ -75,6 +75,6 @@ from read_write_joint_to_file import DataCollection
 # #
 
 obj = DataCollection(10)
-#obj.read_joint_write_file()
+#obj.dvrk_data_write_to_file()
 each_line = obj.read_from_txt_file()
 print("each line data of 3", each_line[2])
