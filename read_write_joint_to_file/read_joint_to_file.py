@@ -69,4 +69,10 @@ class DataCollection:
         concat_lines = open_txt_file.readlines()
         return concat_lines
 
+    def read_jigsaw_dataset_file(self):
+        # Open the file
+        open_jigsaw_file = open(self.file_dir, "r")
+        # Reads all the lines and stores it and returns the data
+        read_lines = open_jigsaw_file.readlines()
+        return read_lines
 
