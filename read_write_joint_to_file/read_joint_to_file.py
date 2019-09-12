@@ -10,8 +10,9 @@ class DataCollection:
     # To make sure the headings exist in the csv file and is only written once
     file_heading_exits = 0
 
-    def __init__(self, loop_rate):
+    def __init__(self, loop_rate, file_dir):
         self.loop_rate = loop_rate
+        self.file_dir = file_dir
 
     def dvrk_data_write_to_file(self):
         rospy.init_node('read_write_data_dvrk')
@@ -20,8 +21,8 @@ class DataCollection:
         p = dvrk.psm('PSM1')
         # p.move_joint_one(0.05, 0)
         # Location of file storage
-        data_file_dir = "/home/aimlabx/PycharmProjects/dvrk_automated_suturing/data/dvrk_joint_data.csv"
-        csv = open(data_file_dir, "a")
+        # data_file_dir = "/home/aimlabx/PycharmProjects/dvrk_automated_suturing/data/dvrk_joint_data.csv"
+        csv = open(self.file_dir, "a")
         # For writing the heading to the csv file
         if self.file_heading_exits == 0:
             p.home()
@@ -61,9 +62,9 @@ class DataCollection:
 
     def read_from_txt_file(self):
         # Path of the folder containing the data
-        txt_file_dir = "/home/aimlabx/Downloads/Thesis/JIGSAWS/Suturing/kinematics/AllGestures/Suturing_I001.txt"
+        # txt_file_dir = "/home/aimlabx/Downloads/Thesis/JIGSAWS/Suturing/kinematics/AllGestures/Suturing_I001.txt"
         # Open the file
-        open_txt_file = open(txt_file_dir, "r")
+        open_txt_file = open(self.file_dir, "r")
         # Reads all the lines and stores it and returns the data
         concat_lines = open_txt_file.readlines()
         return concat_lines
