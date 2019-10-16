@@ -2,13 +2,52 @@
 
 import dvrk
 import PyKDL
+from jigsaw_data_parse import jigsaw_data_parser
+
+import math
 import numpy as np
 from read_write_joint_to_file import DataCollection
 from move_dvrk_arm import MoveDVRKArm
 # # # Create a Python proxy for PSM1, name must match ros namespace
-# p = dvrk.psm('PSM1')
-# p.home()
-# p.move(PyKDL.Vector(0.020315, 0.03192, -0.014969))
+p = dvrk.psm('PSM1')
+p.home()
+frame_rpy = p.get_current_position().M.GetRPY()
+# p.move_joint_one(0.01, 0)
+print("Frame represented in RPY ", frame_rpy, p.get_current_position())
+
+p.move(PyKDL.Frame(frame_rpy, (0.0, 0.0, 0.0)))
+# rot_matrix = home_matrix.M
+# inv_rot_matrix = rot_matrix.Inverse()
+# print("inv rot matrix is ", inv_rot_matrix)
+# point_val = home_matrix.p
+# print("ini point val", point_val)
+# point_val[0] = -1*point_val[0]
+# point_val[1] = -1*point_val[1]
+# point_val[2] = -1*point_val[2]
+# print("pint val is ", point_val)
+# print("multiplied stuff is ", inv_rot_matrix*point_val)
+# frame_created = PyKDL.Frame(inv_rot_matrix, inv_rot_matrix*point_val)
+# trans_vector.p = PyKDL.Vector(0.0, 0.00, 0.01)
+# # trans_vect = PyKDL.Vector(0.0, 0.0, 0.0)
+# print("trans vector is ", trans_vect)
+# p.move(trans_vector)
+# print("frame is ", p.get_current_position())
+# lin_space = np.linspace(0, 0.0002, 10)
+# print("lin space val", lin_space)
+# for i in range(0, 10):
+#     trans_vect = home_matrix * PyKDL.Vector(0.0 + lin_space[i], 0.0 + lin_space[i], 0.0 + lin_space[i])
+#     p.move(PyKDL.Vector(trans_vect))
+# print("frame is ", p.get_current_position())
+
+# p.move(old_orientation)
+
+# p.move(PyKDL.Vector(-0.007,  -0.038,  -0.070))
+# p.move(PyKDL.Vector(-0.0073,  -0.038,  -0.075))
+# p.move(PyKDL.Vector(-0.0076,  -0.04,  -0.079))
+# p.move(PyKDL.Vector(-0.008,  -0.043,  -0.082))
+
+# p.move(PyKDL.Vector(0.0, 0.00, 0.01))
+
 # p.move_joint_one(-0.05, 2) # move 3rd joint
 
 # # obj = MoveDVRKArm(0.05, 0, 0, 0, 0)
@@ -104,7 +143,12 @@ from move_dvrk_arm import MoveDVRKArm
 #     pos_ele_x = np.append(pos_ele_x, x[i][38])
 #     pos_ele_y = np.append(pos_ele_y, x[i][39])
 #     pos_ele_z = np.append(pos_ele_z, x[i][40])
-# print "x pos is ", pos_ele_x[0:3]
-
-obj1 = MoveDVRKArm(10)
-obj1.move_dvrk_arm()
+# # print "x pos is ", pos_ele_x[0:3]
+# #
+# obj1 = MoveDVRKArm(10)
+# obj1.move_dvrk_arm()
+# x, y, z, frame = jigsaw_data_parser()
+# goal_vector = PyKDL.Frame()
+# initial_matrix = p.get_current_position()
+# # rot_matrix = PyKDL.Rotation(frame[0], frame[1], frame[2], frame[3], frame[4], frame[5], frame[6], frame[7], frame[8])
+# print("x val is ", p.get_current_position().p)
