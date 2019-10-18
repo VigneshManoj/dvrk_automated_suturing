@@ -12,43 +12,23 @@ from move_dvrk_arm import MoveDVRKArm
 p = dvrk.psm('PSM1')
 p.home()
 frame_rpy = p.get_current_position().M.GetRPY()
-# p.move_joint_one(0.01, 0)
-print("Frame represented in RPY ", frame_rpy, p.get_current_position())
+# p.move_joint_one(0.05, 1)
+print "Frame", p.get_desired_position()
+print "Frame represented in RPY ", frame_rpy
+print "Frame represented in RPY ", frame_rpy[0]
 
-p.move(PyKDL.Frame(frame_rpy, (0.0, 0.0, 0.0)))
+# p.move(PyKDL.Frame(PyKDL.Rotation.RPY(-2.68289914976632, -0.22742225902558444, 1.3761833520210247), PyKDL.Vector(0.00955009,  0.00198011,  -0.0422825)))
+# print "Frame", p.get_desired_position()
+
+obj = DataCollection(10,"/home/vignesh/PycharmProjects/dvrk_automated_suturing/data/dvrk_joint_data.csv")
+obj.dvrk_data_write_to_file_single_arm()
 # rot_matrix = home_matrix.M
 # inv_rot_matrix = rot_matrix.Inverse()
 # print("inv rot matrix is ", inv_rot_matrix)
 # point_val = home_matrix.p
 # print("ini point val", point_val)
 # point_val[0] = -1*point_val[0]
-# point_val[1] = -1*point_val[1]
-# point_val[2] = -1*point_val[2]
-# print("pint val is ", point_val)
-# print("multiplied stuff is ", inv_rot_matrix*point_val)
-# frame_created = PyKDL.Frame(inv_rot_matrix, inv_rot_matrix*point_val)
-# trans_vector.p = PyKDL.Vector(0.0, 0.00, 0.01)
-# # trans_vect = PyKDL.Vector(0.0, 0.0, 0.0)
-# print("trans vector is ", trans_vect)
-# p.move(trans_vector)
-# print("frame is ", p.get_current_position())
-# lin_space = np.linspace(0, 0.0002, 10)
-# print("lin space val", lin_space)
-# for i in range(0, 10):
-#     trans_vect = home_matrix * PyKDL.Vector(0.0 + lin_space[i], 0.0 + lin_space[i], 0.0 + lin_space[i])
-#     p.move(PyKDL.Vector(trans_vect))
-# print("frame is ", p.get_current_position())
-
-# p.move(old_orientation)
-
-# p.move(PyKDL.Vector(-0.007,  -0.038,  -0.070))
-# p.move(PyKDL.Vector(-0.0073,  -0.038,  -0.075))
-# p.move(PyKDL.Vector(-0.0076,  -0.04,  -0.079))
-# p.move(PyKDL.Vector(-0.008,  -0.043,  -0.082))
-
-# p.move(PyKDL.Vector(0.0, 0.00, 0.01))
-
-# p.move_joint_one(-0.05, 2) # move 3rd joint
+#
 
 # # obj = MoveDVRKArm(0.05, 0, 0, 0, 0)
 # # print("reached here")
@@ -120,7 +100,7 @@ p.move(PyKDL.Frame(frame_rpy, (0.0, 0.0, 0.0)))
 # #
 # count = 0
 # obj = DataCollection(10,"/home/aimlabx/Downloads/Thesis/JIGSAWS/Suturing/kinematics/AllGestures/Suturing_I001.txt")
-# #obj.dvrk_data_write_to_file()
+# obj.dvrk_data_write_to_file()
 # each_line = obj.read_from_txt_file()
 # x = np.array(each_line)
 # print x[0][1]
