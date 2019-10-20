@@ -20,7 +20,7 @@ print "Frame represented in RPY ", frame_rpy[0]
 # p.move(PyKDL.Frame(PyKDL.Rotation.RPY(-2.68289914976632, -0.22742225902558444, 1.3761833520210247), PyKDL.Vector(0.00955009,  0.00198011,  -0.0422825)))
 # print "Frame", p.get_desired_position()
 
-obj = DataCollection(10,"/home/vignesh/PycharmProjects/dvrk_automated_suturing/data/dvrk_joint_data.csv")
+obj = DataCollection(25,"/home/vignesh/PycharmProjects/dvrk_automated_suturing/data/dvrk_joint_data.csv")
 obj.dvrk_data_write_to_file_single_arm()
 # rot_matrix = home_matrix.M
 # inv_rot_matrix = rot_matrix.Inverse()
