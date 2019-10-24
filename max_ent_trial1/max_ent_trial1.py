@@ -233,3 +233,4 @@ def expected_value_difference(n_states, n_actions, transition_probability,
 
     evd = optimal_value.dot(p_start_state) - value.dot(p_start_state)
     return evd
+
