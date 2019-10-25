@@ -123,5 +123,5 @@ class DataCollection:
 
     def data_parse_as_numpy_arr(self):
         # Reads data using pandas and returns a pandas dataframe
-        x = pd.read_csv(self.file_dir, sep=',', header=None)
-        return x
+        df = pd.read_csv(self.file_dir, sep=',', header=None)
+        return df

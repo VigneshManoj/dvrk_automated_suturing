@@ -39,15 +39,50 @@ class Environment:
     def feature_matrix(self):
 
         features = []
+        # It starts at 2 because first two rows are names and none type, for now have randomly chosen 300, later need to make it modular
         for n in range(2, 300):
             # Create temporary variable to normalize all the feature vectors (angles/2*pi and pos/norm_val and vel/largest_vel)
             ### Write code to find the largest velocity value in the collected data and use that value to normalize velocity function ###
             temp_f = self.feature_vector(n)
             # Finding the normalizing value for the 3 position vectors
-            norm_dist = sqrt(pow(float(temp_f[3]), 2) + pow(float(temp_f[4]), 2) + pow(float(temp_f[5]), 2))
-            f = (float(temp_f[0])/(2*pi), float(temp_f[1])/(2*pi), float(temp_f[2])/(2*pi), float(temp_f[3])/norm_dist, float(temp_f[4])/norm_dist, float(temp_f[5])/norm_dist)
+            norm_dist = sqrt(pow(round(float(temp_f[3]), 3), 2) + pow(round(float(temp_f[4]), 3), 2) + pow(round(float(temp_f[5]), 3), 2))
+            f = [round(float(temp_f[0]), 3)/(2*pi), round(float(temp_f[1]), 3)/(2*pi), round(float(temp_f[2]), 3)/(2*pi), round(float(temp_f[3]), 3)/norm_dist, round(float(temp_f[4]), 3)/norm_dist, round(float(temp_f[5]), 3)/norm_dist]
             # Add all the normalize feature values to a list
             features.append(f)
         return np.array(features)
 
+    def generate_trajectories_data(self):
+        obj_read_data = DataCollection(25, "/home/vignesh/PycharmProjects/dvrk_automated_suturing/data/dvrk_joint_data.csv")
+        state_values = obj_read_data.data_parse_as_numpy_arr()
+        actions_col = []
+        actions_row = []
+        # Reads each row starting from third (first and second row is unwanted data)
+        for i in range(2, 300):
+            # Reads all the 6 columns of the data file
+            for j in range(0, 6):
+                # Reads two consecutive row values for a specific column and subtracts
+                if j < 3:
+                    act = round(float(state_values.iloc[i + 1][j]) - float(state_values.iloc[i][j]), 3)
+                else:
+                    act = round(float(state_values.iloc[i + 1][j]) - float(state_values.iloc[i][j]), 4)
+                # Creates an array of the actions for a state
+                actions_col.append(act)
+            # Creates an array of the actions for all the states
+            actions_row.append(actions_col)
+            # Resets the list to zero
+            actions_col = []
+        # print "Action is ", actions_row[0], actions_row[1]
+        return actions_row
+
+    def write_data_trajectories_file(self, file_dir):
+        csv = open(file_dir, "a")
+        row_data = self.generate_trajectories_data()
+        for i in range(2, 298):
+            temp_str = self.feature_vector(i)
+            str_row_data = str(round(temp_str.iloc[0], 3)) + "," + str(round(temp_str.iloc[1], 3)) + "," + str(round(temp_str.iloc[2], 3)) + "," + str(round(temp_str.iloc[3], 4)) + "," + str(round(temp_str.iloc[4], 4)) + "," + str(round(temp_str.iloc[5], 4))
+            print("str data is ", str_row_data)
+            # Writes the action file into the csv file
+            for j in range(0, 6):
+                str_row_data += "," + str(row_data[i - 2][j])
+            csv.write(str_row_data + '\n')
 
