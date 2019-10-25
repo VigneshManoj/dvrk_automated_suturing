@@ -4,7 +4,7 @@ import dvrk
 import numpy as np
 import rospy
 import math
-
+import pandas as pd
 
 class DataCollection:
     # To make sure the headings exist in the csv file and is only written once
@@ -120,3 +120,8 @@ class DataCollection:
             csv.write(row_data)
             # Decides at what rate the data is written to the csv file
             rate.sleep()
+
+    def data_parse_as_numpy_arr(self):
+        # Reads data using pandas and returns a pandas dataframe
+        x = pd.read_csv(self.file_dir, sep=',', header=None)
+        return x
