@@ -78,7 +78,7 @@ class DataCollection:
 
 
     def dvrk_data_write_to_file_single_arm(self):
-        # rospy.init_node('read_write_data_dvrk')
+        rospy.init_node('read_write_data_dvrk')
         rate = rospy.Rate(self.loop_rate)
         # Create a Python proxy for PSM1, name must match ros namespace
         p = dvrk.psm('PSM1')
@@ -86,6 +86,9 @@ class DataCollection:
         # Location of file storage
         # data_file_dir = "/home/aimlabx/PycharmProjects/dvrk_automated_suturing/data/dvrk_joint_data.csv"
         csv = open(self.file_dir, "a")
+        # Initialization of rpy and pos
+        current_rpy = np.zeros(3)
+        current_pos = np.zeros(3)
         # For writing the heading to the csv file
         if self.file_heading_exits == 0:
             p.home()
@@ -94,23 +97,24 @@ class DataCollection:
             self.file_heading_exits = 1
         # While loop to read and write data continuously
         while not rospy.is_shutdown():
-            # Read joint positions of dvrk arm
-            current_rpy = p.get_current_position().M.GetRPY()
-            # Read joint velocities of dvrk arm
-            current_pos = p.get_current_position().p
+            # Read joint positions and angles of dvrk arm
+            current_pose = p.get_current_position()
+            current_rpy = current_pose.M.GetRPY()
+            current_pos = current_pose.p
             # print("\nThe current joint position is ", current_pos, "\n")
             # print("\nThe current joint position is ", current_vel, "\n")
 
             # Initialize the row data with joint 0 position
             row_data = str(current_rpy[0])
             # Write the data to file
-            # For writing each joint position value
+            # For writing each end effector angle value
             for i in range(1, 3):
                 row_data += "," + str(current_rpy[i])
                 # print("\n I value is ", i, "\n")
                 if i == 2:
-                    # For writing each joint velocity value
+                    # For writing each end effector position value
                     row_data += "," + str(current_pos[0])
+                    print "Row data is ", row_data
                     for j in range(1, 3):
                         row_data += "," + str(current_pos[j])
                         # New set of data starts in a new line

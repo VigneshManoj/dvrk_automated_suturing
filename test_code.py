@@ -1,5 +1,5 @@
 # !/usr/bin/env python
-
+import rospy
 import dvrk
 import PyKDL
 from jigsaw_data_parse import jigsaw_data_parser
@@ -9,18 +9,18 @@ import numpy as np
 from read_write_joint_to_file import DataCollection
 from move_dvrk_arm import MoveDVRKArm
 # # # Create a Python proxy for PSM1, name must match ros namespace
-p = dvrk.psm('PSM1')
-p.home()
-frame_rpy = p.get_current_position().M.GetRPY()
-# p.move_joint_one(0.05, 1)
-print "Frame", p.get_desired_position()
-print "Frame represented in RPY ", frame_rpy
-print "Frame represented in RPY ", frame_rpy[0]
+# p = dvrk.psm('PSM1')
+# p.home()
+# frame_rpy = p.get_current_position().M.GetRPY()
+# # p.move_joint_one(0.05, 1)
+# # print "Frame", p.get_desired_position()
+# print "Frame represented in RPY ", frame_rpy
+# print "Frame represented in RPY ", frame_rpy[0]
 
 # p.move(PyKDL.Frame(PyKDL.Rotation.RPY(-2.68289914976632, -0.22742225902558444, 1.3761833520210247), PyKDL.Vector(0.00955009,  0.00198011,  -0.0422825)))
 # print "Frame", p.get_desired_position()
 
-obj = DataCollection(25,"/home/vignesh/PycharmProjects/dvrk_automated_suturing/data/dvrk_joint_data.csv")
+obj = DataCollection(1000, "/home/vignesh/PycharmProjects/dvrk_automated_suturing/data/dvrk_joint_data_3.csv")
 obj.dvrk_data_write_to_file_single_arm()
 # rot_matrix = home_matrix.M
 # inv_rot_matrix = rot_matrix.Inverse()
