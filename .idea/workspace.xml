@@ -3,12 +3,11 @@
   <component name="ChangeListManager">
     <list default="true" id="71a93876-613e-4815-b918-977607d6172a" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/dvrk_joint_data.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/dvrk_joint_data.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/trajectory_data.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/.~lock.trajectory_data_1_1000hz.csv#" beforeDir="false" afterPath="$PROJECT_DIR$/data/.~lock.trajectory_data_1_1000hz.csv#" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/trajectory_data_1_1000hz.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/trajectory_data_1_1000hz.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/max_ent_trial1/environment.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial1/environment.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/max_ent_trial1/test_code_trial1.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial1/test_code_trial1.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/misc_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/misc_test.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/read_write_joint_to_file/read_joint_to_file.py" beforeDir="false" afterPath="$PROJECT_DIR$/read_write_joint_to_file/read_joint_to_file.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test_code.py" beforeDir="false" afterPath="$PROJECT_DIR$/test_code.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -32,7 +31,7 @@
     <ConfirmationsSetting value="1" id="Add" />
   </component>
   <component name="PropertiesComponent">
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../Inverse-Reinforcement-Learning" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../IRL" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RunDashboard">

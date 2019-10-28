@@ -31,7 +31,7 @@ class Environment:
 
     def feature_vector(self, state_val):
         # Read from the collected data
-        obj_read_data = DataCollection(1000, "/home/vignesh/PycharmProjects/dvrk_automated_suturing/data/dvrk_joint_data_1_1000hz.csv")
+        obj_read_data = DataCollection(1000, "/home/vignesh/PycharmProjects/dvrk_automated_suturing/data/dvrk_joint_data_3_1000hz.csv")
         arr_feature_vec = obj_read_data.data_parse_as_numpy_arr()
         # Return the feature vector from collected data for a specific state
         return arr_feature_vec.iloc[state_val]
@@ -52,7 +52,7 @@ class Environment:
         return np.array(features)
 
     def generate_trajectories_data(self):
-        obj_read_data = DataCollection(1000, "/home/vignesh/PycharmProjects/dvrk_automated_suturing/data/dvrk_joint_data_1_1000hz.csv")
+        obj_read_data = DataCollection(1000, "/home/vignesh/PycharmProjects/dvrk_automated_suturing/data/dvrk_joint_data_3_1000hz.csv")
         state_values = obj_read_data.data_parse_as_numpy_arr()
         actions_col = []
         actions_row = []
@@ -61,9 +61,9 @@ class Environment:
             # Reads all the 6 columns of the data file
             for j in range(0, 6):
                 # Reads two consecutive row values for a specific column and subtracts
-                # It rounds up 3 decimal places for angles and 4 decimal places for positions
+                # It rounds up 3 decimal places for angles and 3 decimal places for positions
                 if j < 3:
-                    act = round(round(float(state_values.iloc[i + 1][j]), 4) - round(float(state_values.iloc[i][j]), 4), 4)
+                    act = round(round(float(state_values.iloc[i + 1][j]), 4) - round(float(state_values.iloc[i][j]), 4), 3)
                 else:
                     act = round(round(float(state_values.iloc[i + 1][j]), 4) - round(float(state_values.iloc[i][j]), 4), 4)
                 # Creates an array of the actions for a state
@@ -80,7 +80,7 @@ class Environment:
         row_data = self.generate_trajectories_data()
         for i in range(2, 5000):
             temp_str = self.feature_vector(i)
-            str_row_data = str(round(float(temp_str.iloc[0]), 4)) + "," + str(round(float(temp_str.iloc[1]), 4)) + "," + str(round(float(temp_str.iloc[2]), 4)) + "," + str(round(float(temp_str.iloc[3]), 4)) + "," + str(round(float(temp_str.iloc[4]), 4)) + "," + str(round(float(temp_str.iloc[5]), 4))
+            str_row_data = str(round(float(temp_str.iloc[0]), 3)) + "," + str(round(float(temp_str.iloc[1]), 3)) + "," + str(round(float(temp_str.iloc[2]), 3)) + "," + str(round(float(temp_str.iloc[3]), 4)) + "," + str(round(float(temp_str.iloc[4]), 4)) + "," + str(round(float(temp_str.iloc[5]), 4))
             print("str data is ", str_row_data)
             # Writes the action file into the csv file
             for j in range(0, 6):
