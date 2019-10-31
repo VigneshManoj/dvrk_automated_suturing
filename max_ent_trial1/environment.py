@@ -111,3 +111,17 @@ class Environment:
                     str_row_data += "," + str(row_data[i - 2][j])
 
             csv.write(str_row_data + '\n')
+
+    def reward(self, state_int):
+        """
+        Reward for being in state state_int.
+
+        state_int: State integer. int.
+        -> Reward.
+        """
+
+        if state_int == self.n_states - 1:
+            return 1
+        return 0
+
+
