@@ -5,6 +5,7 @@ import numpy as np
 import rospy
 import math
 import pandas as pd
+from numpy import genfromtxt
 
 class DataCollection:
     # To make sure the headings exist in the csv file and is only written once
@@ -125,7 +126,13 @@ class DataCollection:
             # Decides at what rate the data is written to the csv file
             rate.sleep()
 
-    def data_parse_as_numpy_arr(self):
+    def data_parse_df_numpy_arr(self):
         # Reads data using pandas and returns a pandas dataframe
         df = pd.read_csv(self.file_dir, sep=',', header=None)
         return df
+
+    def data_parse_numpy(self):
+        numpy_arr = genfromtxt(self.file_dir, delimiter=',')
+        return numpy_arr
+
+

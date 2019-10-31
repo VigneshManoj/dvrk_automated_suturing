@@ -32,7 +32,7 @@ class Environment:
     def feature_vector(self, state_val):
         # Read from the collected data
         obj_read_data = DataCollection(1000, "/home/vignesh/PycharmProjects/dvrk_automated_suturing/data/dvrk_joint_data_3_1000hz.csv")
-        arr_feature_vec = obj_read_data.data_parse_as_numpy_arr()
+        arr_feature_vec = obj_read_data.data_parse_df_numpy_arr()
         # Return the feature vector from collected data for a specific state
         return arr_feature_vec.iloc[state_val]
 
@@ -53,7 +53,7 @@ class Environment:
 
     def generate_trajectories_data(self):
         obj_read_data = DataCollection(1000, "/home/vignesh/PycharmProjects/dvrk_automated_suturing/data/dvrk_joint_data_3_1000hz.csv")
-        state_values = obj_read_data.data_parse_as_numpy_arr()
+        state_values = obj_read_data.data_parse_df_numpy_arr()
         actions_col = []
         actions_row = []
         # Reads each row starting from third (first and second row is unwanted data)
@@ -75,6 +75,7 @@ class Environment:
         # print "Action is ", actions_row[0], actions_row[1]
         return actions_row
 
+
     def write_data_trajectories_file(self, file_dir):
         csv = open(file_dir, "a")
         row_data = self.generate_trajectories_data()
@@ -87,3 +88,26 @@ class Environment:
                 str_row_data += "," + str(row_data[i - 2][j])
             csv.write(str_row_data + '\n')
 
+
+    def edited_write_data_trajectories_file(self, file_dir):
+        csv = open(file_dir, "a")
+        row_data = self.generate_trajectories_data()
+        for i in range(2, 5000):
+            temp_str = self.feature_vector(i)
+            str_row_data = str(round(float(temp_str.iloc[0]), 3)) + "," + str(round(float(temp_str.iloc[1]), 3)) + "," + str(round(float(temp_str.iloc[2]), 3)) + "," + str(round(float(temp_str.iloc[3]), 4)) + "," + str(round(float(temp_str.iloc[4]), 4)) + "," + str(round(float(temp_str.iloc[5]), 4))
+            print("str data is ", str_row_data)
+            # Writes the action file into the csv file
+            for j in range(0, 6):
+                if row_data[i - 2][j] > 0.001:
+                    upper_lim = int(row_data[i - 2][j]/0.001)
+                    for iter_val in range(0, upper_lim):
+                        row_data[i - 2][j] = 0.001
+                        str_row_data = str(round(float(temp_str.iloc[0])+0.001, 3)) + "," + str(
+                            round(float(temp_str.iloc[1])+0.001, 3)) + "," + str(
+                            round(float(temp_str.iloc[2])+0.001, 3)) + "," + str(
+                            round(float(temp_str.iloc[3])+0.001, 4)) + "," + str(
+                            round(float(temp_str.iloc[4])+0.001, 4)) + "," + str(round(float(temp_str.iloc[5])+0.001, 4)) + "," + str(row_data[i - 2][j])
+                else:
+                    str_row_data += "," + str(row_data[i - 2][j])
+
+            csv.write(str_row_data + '\n')
