@@ -41,6 +41,8 @@ class mdp(object):
                                            [0, 1, 0, 0],
                                            [0, 0, 0, 1]])
         self.modelViewMatrix = self.getModelViewMatrix(self.joints)
+
+    '''
     def Compute_DH_Matrix(self,alpha, a , theta, d):
         DH_matrix=np.matrix([[math.cos(theta), -math.sin(theta), 0, a],
                             [math.sin(theta)*math.cos(alpha), math.cos(theta)*math.cos(alpha), -math.sin(alpha), -d*math.sin(alpha)],
@@ -76,18 +78,19 @@ class mdp(object):
     #     return next_state
 
     # @nb.jit
-    def get_next_state(self,x,y,vtheta, s,action):
-        modelViewMatrix1 = self.getModelViewMatrix(self.joints)
-        modelViewMatrix2 = self.getModelViewMatrix(self.joints + action)
-        A1 = np.transpose(modelViewMatrix1*self.projection_matrix)
-        A2 = np.transpose(modelViewMatrix2*self.projection_matrix)
-
-        cur_state = np.array([[x],[y],[0.97],[1]])
-        delta = (A2-A1)*np.linalg.inv(A1)*cur_state
+    def get_next_state(self, rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z, action):
+        
+        left_end_effector = self.left_end_effector + action
         # print delta
         delta_s = (delta-cur_state*delta[3,:])
         next_state  = cur_state + delta_s
         return next_state[0,0], next_state[1,0], vtheta, s
+    '''
+
+    def get_next_state(self, rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z, action):
+        curr_state = np.array([rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z])
+        next_state_val = curr_state + action
+        return next_state_val
 
     # def reward(self,state):
     #     x = state[0]
@@ -129,68 +132,71 @@ class mdp(object):
     #     return pol
 
 # @vectorize(nb.types.UniTuple(nb.int64[:],3)(nb.float32[:],3), target='parallel')
-def get_indices(x, y, vtheta, s):
-    x = np.round(x,2)
-    y = np.round(y,2)
-    # vtheta = np.round(vx, 2)
-    # vy = np.round(vy, 0)
-    s = np.round(s, 2)
-    # z = np.round(z,2)
 
-    x[x<=-1.5] = -1.5
-    y[y<=-1.5] = -1.5
-    # z[z<=0.9] = 0.9
-    # vx[vx<=-1] = -1
-    # vy[vy<=-1] = -1
-    s[s<=0] = 0
 
-    x[x>=1.5] = 1.5
-    y[y>=1.5] = 1.5
-    # z[z>=1] = 1
-    # vx[vx>=1] = 1
-    # vy[vy>=1] = 1
-    s[s>=0.04] = 0.04
+# Created indices function. It basically reads the value and based on the value it rounds it of to the nearest state
+# space value. For RPY values it rounds it off to the nearest 0.01 value and for XYZ pos values it rounds it off to
+# the nearest 0.001 value
+def get_indices(rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z):
 
-    index_x = (x+1.5)*100
-    index_y = (y+1.5)*100
-    # index_x = (x*100)-(x-0.0001)/abs(x-0.0001)*150
-    # index_y = (y*100)-(y-0.0001)/abs(y-0.0001)*150
-    # index_vx = (vx*100)-(vx-0.0001)/abs(vx-0.0001)*100
-    # index_vy = 0.5*(vy + 1)
+    end_pos_x = np.round(end_pos_x, 2)
+    end_pos_y = np.round(end_pos_y, 2)
+    end_pos_z = np.round(end_pos_z, 2)
 
-    # index_z = (z*100)-90
-    index_vtheta = (vtheta+math.pi)*50/math.pi + 0.5
-    index_speed = s*100
+    end_pos_x[end_pos_x <= -1.5] = -1.5
+    end_pos_y[end_pos_y <= -1.5] = -1.5
+    end_pos_z[end_pos_z <= -1.5] = -1.5
 
-    index_x = index_x.astype(int)
-    index_y = index_y.astype(int)
-    # index_z = index_z.astype(int)
-    # index_vx = index_vx.astype(int)
-    # index_vy = index_vy.astype(int)
-    index_vtheta = index_vtheta.astype(int)
-    index_speed = index_speed.astype(int)
+    end_pos_x[end_pos_x >= 1.5] = 1.5
+    end_pos_y[end_pos_y >= 1.5] = 1.5
+    end_pos_z[end_pos_z >= 1.5] = 1.5
 
-    return index_x, index_y, index_vtheta, index_speed
+    index_end_pos_x = (end_pos_x + 1.5)*100
+    index_end_pos_y = (end_pos_y + 1.5)*100
+    index_end_pos_z = (end_pos_z + 1.5)*100
 
+    index_rot_par_r = (rot_par_r+math.pi)*50/math.pi + 0.5
+    index_rot_par_p = (rot_par_p+math.pi)*50/math.pi + 0.5
+    index_rot_par_y = (rot_par_y+math.pi)*50/math.pi + 0.5
+
+    index_end_pos_x = index_end_pos_x.astype(int)
+    index_end_pos_y = index_end_pos_y.astype(int)
+    index_end_pos_z = index_end_pos_z.astype(int)
+
+    index_rot_par_r = index_rot_par_r.astype(int)
+    index_rot_par_p = index_rot_par_p.astype(int)
+    index_rot_par_y = index_rot_par_y.astype(int)
+
+    return index_rot_par_r, index_rot_par_p, index_rot_par_y, index_end_pos_x, index_end_pos_y, index_end_pos_z
+
+
+# The reward function which is basically adding both the feature1 and feature2 and then using that to calculate the
+# reward
 @vectorize(['float64(float64, float64, float64, float64)'], target='parallel')
-def reward(x,y, vtheta, s):
-      # r = x
-      # r = x+ y
-      r = math.exp(-(x**2+y**2)/(0.5**2)) + np.exp(-((x-0.5)**2+(y-0.5)**2)/(0.1**2))
-      return r
+def reward(rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z):
+
+    r = np.exp(-(rot_par_r**2 + rot_par_p**2 + rot_par_y**2 + end_pos_x**2 + end_pos_y**2 + end_pos_z**2)/0.1**2) \
+          + np.exp(-(rot_par_r**2 + rot_par_p**2 + rot_par_y**2 + end_pos_x**2 + end_pos_y**2 + end_pos_z**2))
+    return r
+
 
 def main_loop(action):
-    new_state_x, new_state_v, new_state_vel_theta, new_state_speed = model.get_next_state(state_x, state_y, state_vel_theta, state_speed, action)
+    new_state_rot_par_r, new_state_rot_par_p, new_state_rot_par_y, new_state_end_pos_x, new_state_end_pos_y, \
+    new_state_end_pos_z = model.get_next_state(rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z, action)
 
-    new_index_x, new_index_y, new_index_vel_theta, new_index_speed = get_indices(new_state_x, new_state_v, new_state_vel_theta, new_state_speed)
+    new_index_rot_par_r, new_index_rot_par_p, new_index_rot_par_y, new_index_end_pos_x, new_index_end_pos_y, \
+    new_index_end_pos_z = get_indices(new_state_rot_par_r, new_state_rot_par_p, new_state_rot_par_y,
+                                      new_state_end_pos_x, new_state_end_pos_y, new_state_end_pos_z)
 
-    q = r[index_x, index_y, index_vel_theta, index_speed] + 0.9*v[new_index_x, new_index_y, new_index_vel_theta, new_index_speed]
+    q = r[index_rot_par_r, index_rot_par_p, index_rot_par_y, index_end_pos_x, index_end_pos_y, index_end_pos_z] + \
+        0.9*v[new_index_rot_par_r, new_index_rot_par_p, new_index_rot_par_y, new_index_end_pos_x, new_index_end_pos_y,
+              new_index_end_pos_z]
     p = np.exp(0.75*q)
     return q, p
 
 def initial_loop(action):
     # print "Calculating q..."
-    q = r[index_x, index_y, index_vel_theta, index_speed]
+    q = r[index_rot_par_r, index_rot_par_p, index_rot_par_y, index_end_pos_x, index_end_pos_y, index_end_pos_z]
     # print "Calculating p..."
     p = np.exp(0.75*q)
     return q, p
@@ -198,14 +204,22 @@ def initial_loop(action):
 def get_policy(weights, n_iter, n_time):
     global model
     global r, v, index_x, index_y, index_vel_theta, index_speed, state_x, state_y, state_vel_theta, state_speed
-    model = mdp(np.array([0,0,5,0], dtype = 'float64'))
+    global rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z
+    global index_rot_par_r, index_rot_par_p, index_rot_par_y, index_end_pos_x, index_end_pos_y, index_end_pos_z
+    global state_rot_par_r, state_rot_par_p, state_rot_par_y, state_end_pos_x, state_end_pos_y, state_end_pos_z
+    model = mdp(np.array([1, 0, 0, 0, 0, 0], dtype='float64'))
 
-    x = np.linspace(-1.5,1.5,301, dtype = 'float64')
-    vtheta = np.linspace(-math.pi, math.pi, 101, dtype = 'float64')
-    s = np.linspace(0, 0.1, 11, dtype = 'float64')
+    end_pos_x = np.linspace(-1.5, 1.5, 301, dtype='float64')
+    end_pos_y = np.linspace(-1.5, 1.5, 301, dtype='float64')
+    end_pos_z = np.linspace(-1.5, 1.5, 301, dtype='float64')
+
+    rot_par_r = np.linspace(-math.pi, math.pi, 101, dtype='float64')
+    rot_par_p = np.linspace(-math.pi, math.pi, 101, dtype='float64')
+    rot_par_y = np.linspace(-math.pi, math.pi, 101, dtype='float64')
 
     print 'Creating state space...'
-    state_x, state_y, state_vel_theta, state_speed = np.meshgrid(x, x, vtheta, s)
+    state_rot_par_r, state_rot_par_p, state_rot_par_y, state_end_pos_x, state_end_pos_y, state_end_pos_z = \
+        np.meshgrid(rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z)
     print 'State space created.'
 
     # plot_x = np.linspace(-1.5,1.5,21, dtype = 'float32')
@@ -214,22 +228,27 @@ def get_policy(weights, n_iter, n_time):
     # print xv.shape
 
     action_set= []
-    for j1 in [-0.01,0,0.01]:
-        for j2 in [-0.01,0,0.01]:
-            for j3 in [-0.1, 0, 0.1]:
-                # for j4 in [-0.01, 0, 0.01]:
-                action_set.append(np.array([j1,j2,j3,0]))
+    for rot_par_r in [-0.01, 0, 0.01]:
+        for rot_par_p in [-0.01, 0, 0.01]:
+            for rot_par_y in [-0.01, 0, 0.01]:
+                for end_pos_x in [-0.001, 0, 0.001]:
+                    for end_pos_y in [-0.001, 0, 0.001]:
+                        for end_pos_z in [-0.001, 0, 0.001]:
+                            action_set.append(
+                                np.array([rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z]))
 
     # print len(action_set)
     # r = reward(state_x, state_y, state_vel_theta, state_speed)
 
-    r, f = features.reward(state_x, state_y, state_vel_theta, state_speed, weights)
+    r, f = features.reward(state_rot_par_r, state_rot_par_p, state_rot_par_y, state_end_pos_x, state_end_pos_y,
+                           state_end_pos_z, weights)
 
 
-    index_x, index_y, index_vel_theta, index_speed = get_indices(state_x, state_y, state_vel_theta, state_speed)
+    index_rot_par_r, index_rot_par_p, index_rot_par_y, index_end_pos_x, index_end_pos_y, index_end_pos_z = \
+        get_indices(state_rot_par_r, state_rot_par_p, state_rot_par_y, state_end_pos_x, state_end_pos_y, state_end_pos_z)
 
     policy = []
-    for iter in range(0,n_iter):
+    for iter in range(0, n_iter):
         action_value = []
         policy =[]
         print "Policy Iteration:", iter

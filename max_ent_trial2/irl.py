@@ -44,7 +44,7 @@ class mdp(object):
 
     # Adds the action value and provides the next state of the robot
     def get_next_state(self, state, action):
-        left_end_effector = self.left_end_effector + action
+        left_end_effector = state + action
         return left_end_effector
 
 
@@ -113,16 +113,16 @@ class mdp(object):
 #         reward = feature_weigths' * features.getVector(state)
 
 if __name__ == '__main__':
-    state = np.array([1, 1, 1, 1, 1, 1], dtype=np.float32)
+    state = np.array([0, 0, 0, 1, 0, 0], dtype=np.float32)
     # action = np.array([0.1,0,0,0])
-    left_arm = mdp(np.array([1, 1, 1, 1, 1, 1], dtype=np.float32))
-    Policy = left_arm.policy(state, 1)
+    left_arm = mdp(np.array([1, 0, 0, 0, 0, 0], dtype=np.float32))
+    Policy = left_arm.policy(state, 3)
     action_index = Policy.argmax()
     action = left_arm.action_set[action_index]
     print action
     # print max(Policy)
     # next_state = ecm.get_next_state(state,action)
-
+# [-0.01  -0.01  -0.01  -0.001 -0.001 -0.001]
     # print value(state, 0)
     # r = ecm.reward(state)
     # print r
