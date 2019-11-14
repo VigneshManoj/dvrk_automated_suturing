@@ -26,7 +26,7 @@ class mdp(object):
         #             # for j4 in [-0.01, 0, 0.01]:
         #             self.action_set.append(np.array([j1,j2,j3,0]))
 
-
+    '''
         self.projection_matrix =np.matrix([[1/math.tan(np.pi/12)*744/1301, 0,0,0],
                          [0, 1/math.tan(np.pi/12), 0,0],
                          [0, 0, -(100+0.1)/(100-0.1), -1],
@@ -42,7 +42,7 @@ class mdp(object):
                                            [0, 0, 0, 1]])
         self.modelViewMatrix = self.getModelViewMatrix(self.joints)
 
-    '''
+    
     def Compute_DH_Matrix(self,alpha, a , theta, d):
         DH_matrix=np.matrix([[math.cos(theta), -math.sin(theta), 0, a],
                             [math.sin(theta)*math.cos(alpha), math.cos(theta)*math.cos(alpha), -math.sin(alpha), -d*math.sin(alpha)],
@@ -272,27 +272,32 @@ def get_policy(weights, n_iter, n_time):
     # mu = np.empty([301,301,101,11])
     print "Final Policy evaluated."
     print "Calulating State Visitation Frequency..."
-    mu = np.exp(-(state_x+0.15)**2/0.25**2)*np.exp(-(state_y-0.27)**2/0.5**2)*np.exp(0.004*state_speed)
-    mu_reshape = np.reshape(mu, [301*301*101*11,1])
+    mu = np.exp(-(state_rot_par_r + 0.15)**2/0.25**2)*np.exp(-(state_rot_par_p + 0.15)**2/0.5**2) * \
+         np.exp(-(state_rot_par_y + 0.15)**2/0.5**2)*np.exp(-(state_end_pos_x + 0.15)**2/0.5**2) * \
+         np.exp(-(state_end_pos_y + 0.15)**2/0.5**2)*np.exp(-(state_end_pos_z + 0.15)**2/0.5**2)
+    mu_reshape = np.reshape(mu, [301*301*101*11, 1])
     mu = mu/sum(mu_reshape)
     mu_last = mu
     print "Initial State Frequency calculated..."
-    for time in range(0,n_time):
-        s = np.zeros([301,301,101,11])
+    for time in range(0, n_time):
+        s = np.zeros([301, 301, 101, 11])
         for act_index, action in enumerate(action_set):
+            new_state_rot_par_r, new_state_rot_par_p, new_state_rot_par_y, new_state_end_pos_x, new_state_end_pos_y, \
+            new_state_end_pos_z = model.get_next_state(state_rot_par_r, state_rot_par_p, state_rot_par_y,
+                                                       state_end_pos_x, state_end_pos_y, state_end_pos_z, action)
 
-            new_state_x, new_state_v, new_state_vel_theta, new_state_speed = model.get_next_state(state_x, state_y, state_vel_theta, state_speed, action)
+            new_index_rot_par_r, new_index_rot_par_p, new_index_rot_par_y, new_index_end_pos_x, new_index_end_pos_y, \
+            new_index_end_pos_z = get_indices(new_state_rot_par_r, new_state_rot_par_p, new_state_rot_par_y,
+                                              new_state_end_pos_x, new_state_end_pos_y, new_state_end_pos_z)
 
-            new_index_x, new_index_y, new_index_vel_theta, new_index_speed = get_indices(new_state_x, new_state_v, new_state_vel_theta, new_state_speed)
-
-            p = policy[act_index, index_x, index_y, index_vel_theta, index_speed]
-            s = s + p*mu_last[new_index_x, new_index_y, new_index_vel_theta, new_index_speed]
+            p = policy[act_index, index_rot_par_r, index_rot_par_p, index_rot_par_y, index_end_pos_x, index_end_pos_y,
+                       index_end_pos_z]
+            s = s + p*mu_last[new_index_rot_par_r, new_index_rot_par_p, new_index_rot_par_y, new_index_end_pos_x,
+                              new_index_end_pos_y, new_index_end_pos_z]
         mu_last = s
-        mu = mu+mu_last
+        mu = mu + mu_last
     mu = mu/n_time
     state_visitation = mu_last*f
     print "State Visitation Frequency calculated."
     return np.sum(state_visitation.reshape(2, 301*301*101*11), axis=1), policy
-    # return f, policy, mu
-    # mu_reshape = np.reshape(mu_normalized, [301*301*101*11,1])
-    # print sum(mu_reshape)
+
