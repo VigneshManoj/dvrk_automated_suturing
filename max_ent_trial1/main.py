@@ -8,8 +8,8 @@ matthew.alger@anu.edu.au
 import numpy as np
 import matplotlib.pyplot as plt
 from read_write_joint_to_file import DataCollection
-import irl.maxent as maxent
-import irl.mdp.gridworld as gridworld
+from max_ent_trial1 import irl
+# import irl.mdp.gridworld as gridworld
 from environment import Environment
 
 if __name__ == '__main__':
@@ -24,17 +24,18 @@ if __name__ == '__main__':
     epochs: Gradient descent iterations. int.
     learning_rate: Gradient descent learning rate. float.
     """
-
+    epochs = 2
+    learning_rate = 0.001
     # wind = 0.3
     # trajectory_length = 3*grid_size
     obj_data_collec = DataCollection(1, "/home/vignesh/PycharmProjects/dvrk_automated_suturing/data/trajectory_data_1_1000hz.csv")
     trajectories = obj_data_collec. data_parse_numpy()
     obj_environment = Environment(0.9)
     feature_matrix = obj_environment.feature_matrix()
-    ground_r = np.array([gw.reward(s) for s in range(gw.n_states)])
-    r = maxent.irl(feature_matrix, gw.n_actions, discount,
-        gw.transition_probability, trajectories, epochs, learning_rate)
-
+    ground_r = np.array([obj_environment.reward(s) for s in range(int(obj_environment.n_states))])
+    print "ground reward is ", ground_r, len(ground_r)
+    r = irl(feature_matrix, obj_environment.n_actions, obj_environment.discount, trajectories, epochs, learning_rate)
+'''
     plt.subplot(1, 2, 1)
     plt.pcolor(ground_r.reshape((grid_size, grid_size)))
     plt.colorbar()
@@ -44,3 +45,4 @@ if __name__ == '__main__':
     plt.colorbar()
     plt.title("Recovered reward")
     plt.show()
+'''
