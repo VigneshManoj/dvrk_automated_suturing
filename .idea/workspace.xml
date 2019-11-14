@@ -3,9 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="71a93876-613e-4815-b918-977607d6172a" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/max_ent_trial1/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial1/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/max_ent_trial1/max_ent_trial1.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial1/max_ent_trial1.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/misc_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/misc_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/max_ent_trial2/irl.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial2/irl.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -43,7 +41,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.features">
+  <component name="RunManager" selected="Python.irl">
     <configuration name="features" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="dvrk_automated_suturing" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -57,6 +55,27 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/max_ent_trial2/features.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="irl" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="dvrk_automated_suturing" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/max_ent_trial2" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/max_ent_trial2/irl.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -107,27 +126,6 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="test_code" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <module name="dvrk_automated_suturing" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test_code.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
     <configuration name="test_code_trial1" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="dvrk_automated_suturing" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -151,11 +149,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.irl" />
         <item itemvalue="Python.features" />
         <item itemvalue="Python.misc_test" />
         <item itemvalue="Python.main" />
         <item itemvalue="Python.test_code_trial1" />
-        <item itemvalue="Python.test_code" />
       </list>
     </recent_temporary>
   </component>

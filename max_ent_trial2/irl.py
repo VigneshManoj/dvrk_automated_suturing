@@ -3,7 +3,7 @@ import math
 from numba import vectorize
 
 class mdp(object):
-    def __init__(self, left_end_effector ):
+    def __init__(self, left_end_effector):
         self.left_end_effector = left_end_effector
         self.action_set = []
         self.gamma = 0.9
@@ -61,22 +61,24 @@ class mdp(object):
         r = np.exp(-(rot_par_r**2 + rot_par_p**2 + rot_par_y**2 + end_pos_x**2 + end_pos_y**2 + end_pos_z**2)/0.1**2)
         return r
 
+
     def value(self, state, iter):
         if iter == 0:
             val = self.reward(state)
         else:
             val = 0
             for action in self.action_set:
-                val = val + self.action_value(state,action,iter)
+                val = val + self.action_value(state, action, iter)
         return val
 
     def action_value(self, state, action, iter):
         if iter == 0:
             val = self.reward(state)
         else:
-            next_state = self.get_next_state(state,action)
+            next_state = self.get_next_state(state, action)
             val = self.reward(state) + self.gamma*self.value(next_state, iter-1)
         return val
+
 
     def calculate_z(self,state, iter):
         Z=[]
@@ -85,7 +87,8 @@ class mdp(object):
         # print sum(Z)
         return Z
 
-    def policy(self,state, iter):
+
+    def policy(self, state, iter):
         Z = self.calculate_z(state, iter)
         pol = Z/sum(Z)
         # print Z
@@ -110,12 +113,12 @@ class mdp(object):
 #         reward = feature_weigths' * features.getVector(state)
 
 if __name__ == '__main__':
-    state = np.array([1,0,0,0,0], dtype=np.float32)
+    state = np.array([1, 1, 1, 1, 1, 1], dtype=np.float32)
     # action = np.array([0.1,0,0,0])
-    ecm = mdp(np.array([0,0,5,0], dtype=np.float32))
-    Policy = ecm.policy(state, 2)
+    left_arm = mdp(np.array([1, 1, 1, 1, 1, 1], dtype=np.float32))
+    Policy = left_arm.policy(state, 1)
     action_index = Policy.argmax()
-    action = ecm.action_set[action_index]
+    action = left_arm.action_set[action_index]
     print action
     # print max(Policy)
     # next_state = ecm.get_next_state(state,action)
