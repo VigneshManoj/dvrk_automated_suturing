@@ -28,3 +28,5 @@ def feature2(rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z):
     # print f2
     return f2
 
+# if __name__ == '__main__':
+    # x = feature1()

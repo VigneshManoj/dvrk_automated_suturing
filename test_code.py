@@ -3,7 +3,7 @@ import rospy
 import dvrk
 import PyKDL
 from jigsaw_data_parse import jigsaw_data_parser
-
+from environment import Environment
 import math
 import numpy as np
 from read_write_joint_to_file import DataCollection
@@ -20,8 +20,11 @@ from move_dvrk_arm import MoveDVRKArm
 # p.move(PyKDL.Frame(PyKDL.Rotation.RPY(-2.68289914976632, -0.22742225902558444, 1.3761833520210247), PyKDL.Vector(0.00955009,  0.00198011,  -0.0422825)))
 # print "Frame", p.get_desired_position()
 
-obj = DataCollection(1250, "/home/vignesh/PycharmProjects/dvrk_automated_suturing/data/dvrk_joint_data_3_1000hz.csv")
-obj.dvrk_data_write_to_file_single_arm()
+obj_collect_dvrk = DataCollection(1250, "/home/vignesh/PycharmProjects/dvrk_automated_suturing/data/dvrk_joint_data_3_1000hz.csv")
+# obj_collect_dvrk.dvrk_data_write_to_file_single_arm()
+obj_create_traj = Environment(0.9)
+obj_create_traj.write_data_trajectories_file("/home/vignesh/PycharmProjects/dvrk_automated_suturing/data/trajectory_data_4_1000hz.csv")
+
 # rot_matrix = home_matrix.M
 # inv_rot_matrix = rot_matrix.Inverse()
 # print("inv rot matrix is ", inv_rot_matrix)

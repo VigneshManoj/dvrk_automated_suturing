@@ -89,7 +89,9 @@ class mdp(object):
 
     def get_next_state(self, rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z, action):
         curr_state = np.array([rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z])
-        next_state_val = curr_state + action
+        # Since the state value is normalized by dividing with 2*pi, so multiply with 2*pi and add action
+        # Then divide final result by 2*pi to normalize the data again
+        next_state_val = (curr_state*2*np.pi + action)/(2*np.pi)
         return next_state_val
 
     # def reward(self,state):
@@ -172,7 +174,7 @@ def get_indices(rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z
 
 # The reward function which is basically adding both the feature1 and feature2 and then using that to calculate the
 # reward
-@vectorize(['float64(float64, float64, float64, float64)'], target='parallel')
+@vectorize(['float64(float64, float64, float64, float64, float64, float64)'], target='parallel')
 def reward(rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z):
 
     r = np.exp(-(rot_par_r**2 + rot_par_p**2 + rot_par_y**2 + end_pos_x**2 + end_pos_y**2 + end_pos_z**2)/0.1**2) \
@@ -209,17 +211,17 @@ def get_policy(weights, n_iter, n_time):
     global state_rot_par_r, state_rot_par_p, state_rot_par_y, state_end_pos_x, state_end_pos_y, state_end_pos_z
     model = mdp(np.array([1, 0, 0, 0, 0, 0], dtype='float64'))
 
-    end_pos_x = np.linspace(-1.5, 1.5, 301, dtype='float64')
-    end_pos_y = np.linspace(-1.5, 1.5, 301, dtype='float64')
-    end_pos_z = np.linspace(-1.5, 1.5, 301, dtype='float64')
+    end_pos_x = np.linspace(-1.5, 1.5, 301, dtype='float16')
+    end_pos_y = np.linspace(-1.5, 1.5, 301, dtype='float16')
+    end_pos_z = np.linspace(-1.5, 1.5, 301, dtype='float16')
 
-    rot_par_r = np.linspace(-math.pi, math.pi, 101, dtype='float64')
-    rot_par_p = np.linspace(-math.pi, math.pi, 101, dtype='float64')
-    rot_par_y = np.linspace(-math.pi, math.pi, 101, dtype='float64')
+    rot_par_r = np.linspace(-math.pi, math.pi, 101, dtype='float16')
+    rot_par_p = np.linspace(-math.pi, math.pi, 101, dtype='float16')
+    rot_par_y = np.linspace(-math.pi, math.pi, 101, dtype='float16')
 
     print 'Creating state space...'
     state_rot_par_r, state_rot_par_p, state_rot_par_y, state_end_pos_x, state_end_pos_y, state_end_pos_z = \
-        np.meshgrid(rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z)
+        np.meshgrid(rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z, sparse=True)
     print 'State space created.'
 
     # plot_x = np.linspace(-1.5,1.5,21, dtype = 'float32')
@@ -254,7 +256,7 @@ def get_policy(weights, n_iter, n_time):
         print "Policy Iteration:", iter
         # start_time = t.time()
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers = 8) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
             if iter == 0:
                 func = initial_loop
             else:
