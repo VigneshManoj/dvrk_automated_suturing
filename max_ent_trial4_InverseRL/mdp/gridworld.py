@@ -13,7 +13,7 @@ class Gridworld(object):
     Gridworld MDP.
     """
 
-    def __init__(self, grid_size, wind, discount):
+    def __init__(self, grid_size, discount):
         """
         grid_size: Grid size. int.
         wind: Chance of moving randomly. float.
@@ -23,9 +23,8 @@ class Gridworld(object):
 
         self.actions = ((1, 0), (0, 1), (-1, 0), (0, -1))
         self.n_actions = len(self.actions)
-        self.n_states = grid_size**2
+        self.n_states = grid_size**3
         self.grid_size = grid_size
-        self.wind = wind
         self.discount = discount
 
         # Preconstruct the transition probability array.
@@ -36,10 +35,9 @@ class Gridworld(object):
              for i in range(self.n_states)])
 
     def __str__(self):
-        return "Gridworld({}, {}, {})".format(self.grid_size, self.wind,
-                                              self.discount)
+        return "Gridworld({}, {})".format(self.grid_size, self.discount)
 
-    def feature_vector(self, i, feature_map="ident"):
+    def feature_vector(self, i):
         """
         Get the feature vector associated with a state integer.
 
@@ -48,7 +46,7 @@ class Gridworld(object):
             coord, proxi}.
         -> Feature vector.
         """
-
+        '''
         if feature_map == "coord":
             f = np.zeros(self.grid_size)
             x, y = i % self.grid_size, i // self.grid_size
@@ -63,12 +61,13 @@ class Gridworld(object):
                     dist = abs(x - a) + abs(y - b)
                     f[self.point_to_int((a, b))] = dist
             return f
+        '''
         # Assume identity map.
         f = np.zeros(self.n_states)
         f[i] = 1
         return f
 
-    def feature_matrix(self, feature_map="ident"):
+    def feature_matrix(self):
         """
         Get the feature matrix for this gridworld.
 
@@ -79,7 +78,7 @@ class Gridworld(object):
 
         features = []
         for n in range(self.n_states):
-            f = self.feature_vector(n, feature_map)
+            f = self.feature_vector(n)
             features.append(f)
         return np.array(features)
 
@@ -135,11 +134,11 @@ class Gridworld(object):
 
         # Is k the intended state to move to?
         if (xi + xj, yi + yj) == (xk, yk):
-            return 1 - self.wind + self.wind/self.n_actions
+            return 1
 
         # If these are not the same point, then we can move there by wind.
         if (xi, yi) != (xk, yk):
-            return self.wind/self.n_actions
+            return 0
 
         # If these are the same point, we can only move here by either moving
         # off the grid or being blown off the grid. Are we on a corner or not?
@@ -153,10 +152,10 @@ class Gridworld(object):
                 # We intended to move off the grid, so we have the regular
                 # success chance of staying here plus an extra chance of blowing
                 # onto the *other* off-grid square.
-                return 1 - self.wind + 2*self.wind/self.n_actions
+                return 1
             else:
                 # We can blow off the grid in either direction only by wind.
-                return 2*self.wind/self.n_actions
+                return 0
         else:
             # Not a corner. Is it an edge?
             if (xi not in {0, self.grid_size-1} and
@@ -171,10 +170,10 @@ class Gridworld(object):
                     0 <= yi + yj < self.grid_size):
                 # We intended to move off the grid, so we have the regular
                 # success chance of staying here.
-                return 1 - self.wind + self.wind/self.n_actions
+                return 1
             else:
                 # We can blow off the grid only by wind.
-                return self.wind/self.n_actions
+                return 0
 
     def reward(self, state_int):
         """
@@ -263,7 +262,7 @@ class Gridworld(object):
 
             trajectory = []
             for _ in range(trajectory_length):
-                if rn.random() < self.wind:
+                if rn.random() < 0:
                     action = self.actions[rn.randint(0, 4)]
                 else:
                     # Follow the given policy.

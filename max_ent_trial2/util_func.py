@@ -18,7 +18,9 @@ class mdp(object):
         self.joints = init_joint_angles
         self.action_set = []
         self.gamma = 0.9
-        self.beta =  0.75
+        self.beta = 0.75
+        self.limit_values_angle = [[-0.5, 0.5], [-0.234, -0.155], [0.28, 0.443]]
+        self.limit_values_pos = [[-0.009, -0.003], [0.003, 007], [-0.014, -0.008]]
 
         # for j1 in [-0.01,0,0.01]:
         #     for j2 in [-0.01,0,0.01]:
@@ -141,21 +143,21 @@ class mdp(object):
 # the nearest 0.001 value
 def get_indices(rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z):
 
-    end_pos_x = np.round(end_pos_x, 2)
-    end_pos_y = np.round(end_pos_y, 2)
-    end_pos_z = np.round(end_pos_z, 2)
+    end_pos_x = np.round(end_pos_x, 3)
+    end_pos_y = np.round(end_pos_y, 3)
+    end_pos_z = np.round(end_pos_z, 3)
 
-    end_pos_x[end_pos_x <= -1.5] = -1.5
-    end_pos_y[end_pos_y <= -1.5] = -1.5
-    end_pos_z[end_pos_z <= -1.5] = -1.5
+    # end_pos_x[end_pos_x <= -1.5] = -1.5
+    # end_pos_y[end_pos_y <= -1.5] = -1.5
+    # end_pos_z[end_pos_z <= -1.5] = -1.5
+    #
+    # end_pos_x[end_pos_x >= 1.5] = 1.5
+    # end_pos_y[end_pos_y >= 1.5] = 1.5
+    # end_pos_z[end_pos_z >= 1.5] = 1.5
 
-    end_pos_x[end_pos_x >= 1.5] = 1.5
-    end_pos_y[end_pos_y >= 1.5] = 1.5
-    end_pos_z[end_pos_z >= 1.5] = 1.5
-
-    index_end_pos_x = (end_pos_x + 1.5)*100
-    index_end_pos_y = (end_pos_y + 1.5)*100
-    index_end_pos_z = (end_pos_z + 1.5)*100
+    index_end_pos_x = (end_pos_x + 0.5)*10
+    index_end_pos_y = (end_pos_y + 0.5)*10
+    index_end_pos_z = (end_pos_z + 0.5)*10
 
     index_rot_par_r = (rot_par_r+math.pi)*50/math.pi + 0.5
     index_rot_par_p = (rot_par_p+math.pi)*50/math.pi + 0.5
@@ -211,13 +213,13 @@ def get_policy(weights, n_iter, n_time):
     global state_rot_par_r, state_rot_par_p, state_rot_par_y, state_end_pos_x, state_end_pos_y, state_end_pos_z
     model = mdp(np.array([1, 0, 0, 0, 0, 0], dtype='float64'))
 
-    end_pos_x = np.linspace(-1.5, 1.5, 301, dtype='float16')
-    end_pos_y = np.linspace(-1.5, 1.5, 301, dtype='float16')
-    end_pos_z = np.linspace(-1.5, 1.5, 301, dtype='float16')
+    end_pos_x = np.linspace(model.limit_values_angle[0][0], model.limit_values_angle[0][1], 11, dtype='float16')
+    end_pos_y = np.linspace(model.limit_values_angle[1][0], model.limit_values_angle[1][1], 11, dtype='float16')
+    end_pos_z = np.linspace(model.limit_values_angle[2][0], model.limit_values_angle[2][1], 11, dtype='float16')
 
-    rot_par_r = np.linspace(-math.pi, math.pi, 101, dtype='float16')
-    rot_par_p = np.linspace(-math.pi, math.pi, 101, dtype='float16')
-    rot_par_y = np.linspace(-math.pi, math.pi, 101, dtype='float16')
+    rot_par_r = np.linspace(model.limit_values_pos[0][0], model.limit_values_pos[0][1], 11, dtype='float16')
+    rot_par_p = np.linspace(model.limit_values_pos[1][0], model.limit_values_pos[1][1], 11, dtype='float16')
+    rot_par_y = np.linspace(model.limit_values_pos[1][0], model.limit_values_pos[2][1], 11, dtype='float16')
 
     print 'Creating state space...'
     state_rot_par_r, state_rot_par_p, state_rot_par_y, state_end_pos_x, state_end_pos_y, state_end_pos_z = \
@@ -274,15 +276,15 @@ def get_policy(weights, n_iter, n_time):
     # mu = np.empty([301,301,101,11])
     print "Final Policy evaluated."
     print "Calulating State Visitation Frequency..."
-    mu = np.exp(-(state_rot_par_r + 0.15)**2/0.25**2)*np.exp(-(state_rot_par_p + 0.15)**2/0.5**2) * \
-         np.exp(-(state_rot_par_y + 0.15)**2/0.5**2)*np.exp(-(state_end_pos_x + 0.15)**2/0.5**2) * \
-         np.exp(-(state_end_pos_y + 0.15)**2/0.5**2)*np.exp(-(state_end_pos_z + 0.15)**2/0.5**2)
-    mu_reshape = np.reshape(mu, [301*301*101*11, 1])
+    mu = np.exp(-(state_rot_par_r)**2)*np.exp(-(state_rot_par_p )**2) * \
+         np.exp(-(state_rot_par_y )**2)*np.exp(-(state_end_pos_x )**2) * \
+         np.exp(-(state_end_pos_y )**2)*np.exp(-(state_end_pos_z )**2)
+    mu_reshape = np.reshape(mu, [11*11*11*11, 1])
     mu = mu/sum(mu_reshape)
     mu_last = mu
     print "Initial State Frequency calculated..."
     for time in range(0, n_time):
-        s = np.zeros([301, 301, 101, 11])
+        s = np.zeros([11, 11, 11, 11])
         for act_index, action in enumerate(action_set):
             new_state_rot_par_r, new_state_rot_par_p, new_state_rot_par_y, new_state_end_pos_x, new_state_end_pos_y, \
             new_state_end_pos_z = model.get_next_state(state_rot_par_r, state_rot_par_p, state_rot_par_y,
@@ -301,5 +303,5 @@ def get_policy(weights, n_iter, n_time):
     mu = mu/n_time
     state_visitation = mu_last*f
     print "State Visitation Frequency calculated."
-    return np.sum(state_visitation.reshape(2, 301*301*101*11), axis=1), policy
+    return np.sum(state_visitation.reshape(2, 11*11*11*11), axis=1), policy
 
