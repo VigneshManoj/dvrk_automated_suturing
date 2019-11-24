@@ -21,6 +21,12 @@ class mdp(object):
         self.beta = 0.75
         self.limit_values_angle = [[-0.5, 0.5], [-0.234, -0.155], [0.28, 0.443]]
         self.limit_values_pos = [[-0.009, -0.003], [0.003, 007], [-0.014, -0.008]]
+        # float r, v, index_x, index_y, index_vel_theta, index_speed, state_x, state_y, state_vel_theta, state_speed
+        self.r = 0
+        self.v = 0
+        self.state_values = np.zeros(6)
+        self.state_index_values = np.zeros(6)
+        self.model_state_values = np.zeros(6)
 
         # for j1 in [-0.01,0,0.01]:
         #     for j2 in [-0.01,0,0.01]:
@@ -141,167 +147,167 @@ class mdp(object):
 # Created indices function. It basically reads the value and based on the value it rounds it of to the nearest state
 # space value. For RPY values it rounds it off to the nearest 0.01 value and for XYZ pos values it rounds it off to
 # the nearest 0.001 value
-def get_indices(rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z):
+    def get_indices(self, rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z):
 
-    end_pos_x = np.round(end_pos_x, 3)
-    end_pos_y = np.round(end_pos_y, 3)
-    end_pos_z = np.round(end_pos_z, 3)
+        # To round off to the nearest 0.005 decimal, do math.floor(x*200)/200, where 200 is basically 1/0.05
+        end_pos_x = math.floor(end_pos_x*200/float(200))
+        end_pos_y = math.floor(end_pos_y*200/float(200))
+        end_pos_z = math.floor(end_pos_z*200/float(200))
 
-    # end_pos_x[end_pos_x <= -1.5] = -1.5
-    # end_pos_y[end_pos_y <= -1.5] = -1.5
-    # end_pos_z[end_pos_z <= -1.5] = -1.5
-    #
-    # end_pos_x[end_pos_x >= 1.5] = 1.5
-    # end_pos_y[end_pos_y >= 1.5] = 1.5
-    # end_pos_z[end_pos_z >= 1.5] = 1.5
+        # end_pos_x[end_pos_x <= -1.5] = -1.5
+        # end_pos_y[end_pos_y <= -1.5] = -1.5
+        # end_pos_z[end_pos_z <= -1.5] = -1.5
+        #
+        # end_pos_x[end_pos_x >= 1.5] = 1.5
+        # end_pos_y[end_pos_y >= 1.5] = 1.5
+        # end_pos_z[end_pos_z >= 1.5] = 1.5
 
-    index_end_pos_x = (end_pos_x + 0.5)*10
-    index_end_pos_y = (end_pos_y + 0.5)*10
-    index_end_pos_z = (end_pos_z + 0.5)*10
+        index_end_pos_x = (end_pos_x + 0.5)*10
+        index_end_pos_y = (end_pos_y + 0.5)*10
+        index_end_pos_z = (end_pos_z + 0.5)*10
 
-    index_rot_par_r = (rot_par_r+math.pi)*50/math.pi + 0.5
-    index_rot_par_p = (rot_par_p+math.pi)*50/math.pi + 0.5
-    index_rot_par_y = (rot_par_y+math.pi)*50/math.pi + 0.5
+        index_rot_par_r = (rot_par_r+math.pi)*50/math.pi + 0.5
+        index_rot_par_p = (rot_par_p+math.pi)*50/math.pi + 0.5
+        index_rot_par_y = (rot_par_y+math.pi)*50/math.pi + 0.5
 
-    index_end_pos_x = index_end_pos_x.astype(int)
-    index_end_pos_y = index_end_pos_y.astype(int)
-    index_end_pos_z = index_end_pos_z.astype(int)
+        index_end_pos_x = index_end_pos_x.astype(int)
+        index_end_pos_y = index_end_pos_y.astype(int)
+        index_end_pos_z = index_end_pos_z.astype(int)
 
-    index_rot_par_r = index_rot_par_r.astype(int)
-    index_rot_par_p = index_rot_par_p.astype(int)
-    index_rot_par_y = index_rot_par_y.astype(int)
+        index_rot_par_r = index_rot_par_r.astype(int)
+        index_rot_par_p = index_rot_par_p.astype(int)
+        index_rot_par_y = index_rot_par_y.astype(int)
 
-    return index_rot_par_r, index_rot_par_p, index_rot_par_y, index_end_pos_x, index_end_pos_y, index_end_pos_z
-
-
-# The reward function which is basically adding both the feature1 and feature2 and then using that to calculate the
-# reward
-@vectorize(['float64(float64, float64, float64, float64, float64, float64)'], target='parallel')
-def reward(rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z):
-
-    r = np.exp(-(rot_par_r**2 + rot_par_p**2 + rot_par_y**2 + end_pos_x**2 + end_pos_y**2 + end_pos_z**2)/0.1**2) \
-          + np.exp(-(rot_par_r**2 + rot_par_p**2 + rot_par_y**2 + end_pos_x**2 + end_pos_y**2 + end_pos_z**2))
-    return r
+        return index_rot_par_r, index_rot_par_p, index_rot_par_y, index_end_pos_x, index_end_pos_y, index_end_pos_z
 
 
-def main_loop(action):
-    new_state_rot_par_r, new_state_rot_par_p, new_state_rot_par_y, new_state_end_pos_x, new_state_end_pos_y, \
-    new_state_end_pos_z = model.get_next_state(rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z, action)
+    # The reward function which is basically adding both the feature1 and feature2 and then using that to calculate the
+    # reward
+    @vectorize(['float64(float64, float64, float64, float64, float64, float64)'], target='parallel')
+    def reward(self, rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z):
 
-    new_index_rot_par_r, new_index_rot_par_p, new_index_rot_par_y, new_index_end_pos_x, new_index_end_pos_y, \
-    new_index_end_pos_z = get_indices(new_state_rot_par_r, new_state_rot_par_p, new_state_rot_par_y,
-                                      new_state_end_pos_x, new_state_end_pos_y, new_state_end_pos_z)
-
-    q = r[index_rot_par_r, index_rot_par_p, index_rot_par_y, index_end_pos_x, index_end_pos_y, index_end_pos_z] + \
-        0.9*v[new_index_rot_par_r, new_index_rot_par_p, new_index_rot_par_y, new_index_end_pos_x, new_index_end_pos_y,
-              new_index_end_pos_z]
-    p = np.exp(0.75*q)
-    return q, p
-
-def initial_loop(action):
-    # print "Calculating q..."
-    q = r[index_rot_par_r, index_rot_par_p, index_rot_par_y, index_end_pos_x, index_end_pos_y, index_end_pos_z]
-    # print "Calculating p..."
-    p = np.exp(0.75*q)
-    return q, p
-
-def get_policy(weights, n_iter, n_time):
-    global model
-    global r, v, index_x, index_y, index_vel_theta, index_speed, state_x, state_y, state_vel_theta, state_speed
-    global rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z
-    global index_rot_par_r, index_rot_par_p, index_rot_par_y, index_end_pos_x, index_end_pos_y, index_end_pos_z
-    global state_rot_par_r, state_rot_par_p, state_rot_par_y, state_end_pos_x, state_end_pos_y, state_end_pos_z
-    model = mdp(np.array([1, 0, 0, 0, 0, 0], dtype='float64'))
-
-    end_pos_x = np.linspace(model.limit_values_angle[0][0], model.limit_values_angle[0][1], 11, dtype='float16')
-    end_pos_y = np.linspace(model.limit_values_angle[1][0], model.limit_values_angle[1][1], 11, dtype='float16')
-    end_pos_z = np.linspace(model.limit_values_angle[2][0], model.limit_values_angle[2][1], 11, dtype='float16')
-
-    rot_par_r = np.linspace(model.limit_values_pos[0][0], model.limit_values_pos[0][1], 11, dtype='float16')
-    rot_par_p = np.linspace(model.limit_values_pos[1][0], model.limit_values_pos[1][1], 11, dtype='float16')
-    rot_par_y = np.linspace(model.limit_values_pos[1][0], model.limit_values_pos[2][1], 11, dtype='float16')
-
-    print 'Creating state space...'
-    state_rot_par_r, state_rot_par_p, state_rot_par_y, state_end_pos_x, state_end_pos_y, state_end_pos_z = \
-        np.meshgrid(rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z, sparse=True)
-    print 'State space created.'
-
-    # plot_x = np.linspace(-1.5,1.5,21, dtype = 'float32')
-    # plot_z = np.linspace(0.9, 1, 3, dtype = 'float32')
-    # plot_xv, plot_yv, plot_zv = np.meshgrid(plot_x, plot_x, plot_z)
-    # print xv.shape
-
-    action_set= []
-    for rot_par_r in [-0.01, 0, 0.01]:
-        for rot_par_p in [-0.01, 0, 0.01]:
-            for rot_par_y in [-0.01, 0, 0.01]:
-                for end_pos_x in [-0.001, 0, 0.001]:
-                    for end_pos_y in [-0.001, 0, 0.001]:
-                        for end_pos_z in [-0.001, 0, 0.001]:
-                            action_set.append(
-                                np.array([rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z]))
-
-    # print len(action_set)
-    # r = reward(state_x, state_y, state_vel_theta, state_speed)
-
-    r, f = features.reward(state_rot_par_r, state_rot_par_p, state_rot_par_y, state_end_pos_x, state_end_pos_y,
-                           state_end_pos_z, weights)
+        r = np.exp(-(rot_par_r**2 + rot_par_p**2 + rot_par_y**2 + end_pos_x**2 + end_pos_y**2 + end_pos_z**2)/0.1**2) \
+              + np.exp(-(rot_par_r**2 + rot_par_p**2 + rot_par_y**2 + end_pos_x**2 + end_pos_y**2 + end_pos_z**2))
+        return r
 
 
-    index_rot_par_r, index_rot_par_p, index_rot_par_y, index_end_pos_x, index_end_pos_y, index_end_pos_z = \
-        get_indices(state_rot_par_r, state_rot_par_p, state_rot_par_y, state_end_pos_x, state_end_pos_y, state_end_pos_z)
+    def main_loop(self, action):
+        new_state_rot_par_r, new_state_rot_par_p, new_state_rot_par_y, new_state_end_pos_x, new_state_end_pos_y, \
+        new_state_end_pos_z = model.get_next_state(rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z, action)
 
-    policy = []
-    for iter in range(0, n_iter):
-        action_value = []
-        policy =[]
-        print "Policy Iteration:", iter
-        # start_time = t.time()
+        new_index_rot_par_r, new_index_rot_par_p, new_index_rot_par_y, new_index_end_pos_x, new_index_end_pos_y, \
+        new_index_end_pos_z = self.get_indices(new_state_rot_par_r, new_state_rot_par_p, new_state_rot_par_y,
+                                          new_state_end_pos_x, new_state_end_pos_y, new_state_end_pos_z)
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
-            if iter == 0:
-                func = initial_loop
-            else:
-                func = main_loop
-            for q, p in executor.map(func, action_set):
-                action_value.append(q)
-                policy.append(p)
+        q = r[index_rot_par_r, index_rot_par_p, index_rot_par_y, index_end_pos_x, index_end_pos_y, index_end_pos_z] + \
+            0.9*v[new_index_rot_par_r, new_index_rot_par_p, new_index_rot_par_y, new_index_end_pos_x, new_index_end_pos_y,
+                  new_index_end_pos_z]
+        p = np.exp(0.75*q)
+        return q, p
 
-        print "Evaluating Policy..."
-        policy = policy/sum(policy)
-        v = sum(policy*action_value)
-        # end_time = t.time()
-        # print end_time-start_time
+    def initial_loop(self, action):
+        # print "Calculating q..."
+        q = r[index_rot_par_r, index_rot_par_p, index_rot_par_y, index_end_pos_x, index_end_pos_y, index_end_pos_z]
+        # print "Calculating p..."
+        p = np.exp(0.75*q)
+        return q, p
 
-    # mu = np.empty([301,301,101,11])
-    print "Final Policy evaluated."
-    print "Calulating State Visitation Frequency..."
-    mu = np.exp(-(state_rot_par_r)**2)*np.exp(-(state_rot_par_p )**2) * \
-         np.exp(-(state_rot_par_y )**2)*np.exp(-(state_end_pos_x )**2) * \
-         np.exp(-(state_end_pos_y )**2)*np.exp(-(state_end_pos_z )**2)
-    mu_reshape = np.reshape(mu, [11*11*11*11, 1])
-    mu = mu/sum(mu_reshape)
-    mu_last = mu
-    print "Initial State Frequency calculated..."
-    for time in range(0, n_time):
-        s = np.zeros([11, 11, 11, 11])
-        for act_index, action in enumerate(action_set):
-            new_state_rot_par_r, new_state_rot_par_p, new_state_rot_par_y, new_state_end_pos_x, new_state_end_pos_y, \
-            new_state_end_pos_z = model.get_next_state(state_rot_par_r, state_rot_par_p, state_rot_par_y,
-                                                       state_end_pos_x, state_end_pos_y, state_end_pos_z, action)
+    def get_policy(self, weights, n_iter, n_time):
+        global model
 
-            new_index_rot_par_r, new_index_rot_par_p, new_index_rot_par_y, new_index_end_pos_x, new_index_end_pos_y, \
-            new_index_end_pos_z = get_indices(new_state_rot_par_r, new_state_rot_par_p, new_state_rot_par_y,
-                                              new_state_end_pos_x, new_state_end_pos_y, new_state_end_pos_z)
+        model = mdp(np.array([1, 0, 0, 0, 0, 0], dtype='float64'))
+        # Creates the model state space based on the maximum and minimum values of the dataset provided by the user
+        # It is for created a 3D cube with 6 values specifying each cube node
+        # The value 11 etc decides how sparse the mesh size of the cube would be
+        end_pos_x = np.linspace(model.limit_values_angle[0][0], model.limit_values_angle[0][1], 11, dtype='float16')
+        end_pos_y = np.linspace(model.limit_values_angle[1][0], model.limit_values_angle[1][1], 11, dtype='float16')
+        end_pos_z = np.linspace(model.limit_values_angle[2][0], model.limit_values_angle[2][1], 11, dtype='float16')
 
-            p = policy[act_index, index_rot_par_r, index_rot_par_p, index_rot_par_y, index_end_pos_x, index_end_pos_y,
-                       index_end_pos_z]
-            s = s + p*mu_last[new_index_rot_par_r, new_index_rot_par_p, new_index_rot_par_y, new_index_end_pos_x,
-                              new_index_end_pos_y, new_index_end_pos_z]
-        mu_last = s
-        mu = mu + mu_last
-    mu = mu/n_time
-    state_visitation = mu_last*f
-    print "State Visitation Frequency calculated."
-    return np.sum(state_visitation.reshape(2, 11*11*11*11), axis=1), policy
+        rot_par_r = np.linspace(model.limit_values_pos[0][0], model.limit_values_pos[0][1], 11, dtype='float16')
+        rot_par_p = np.linspace(model.limit_values_pos[1][0], model.limit_values_pos[1][1], 11, dtype='float16')
+        rot_par_y = np.linspace(model.limit_values_pos[1][0], model.limit_values_pos[2][1], 11, dtype='float16')
+
+        print 'Creating state space...'
+        state_rot_par_r, state_rot_par_p, state_rot_par_y, state_end_pos_x, state_end_pos_y, state_end_pos_z = \
+            np.meshgrid(rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z, sparse=True)
+        print 'State space created.'
+
+        # plot_x = np.linspace(-1.5,1.5,21, dtype = 'float32')
+        # plot_z = np.linspace(0.9, 1, 3, dtype = 'float32')
+        # plot_xv, plot_yv, plot_zv = np.meshgrid(plot_x, plot_x, plot_z)
+        # print xv.shape
+
+        action_set= []
+        for rot_par_r in [-0.01, 0, 0.01]:
+            for rot_par_p in [-0.01, 0, 0.01]:
+                for rot_par_y in [-0.01, 0, 0.01]:
+                    for end_pos_x in [-0.001, 0, 0.001]:
+                        for end_pos_y in [-0.001, 0, 0.001]:
+                            for end_pos_z in [-0.001, 0, 0.001]:
+                                action_set.append(
+                                    np.array([rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z]))
+
+        # print len(action_set)
+        # r = reward(state_x, state_y, state_vel_theta, state_speed)
+
+        r, f = features.reward(state_rot_par_r, state_rot_par_p, state_rot_par_y, state_end_pos_x, state_end_pos_y,
+                               state_end_pos_z, weights)
+
+
+        index_rot_par_r, index_rot_par_p, index_rot_par_y, index_end_pos_x, index_end_pos_y, index_end_pos_z = \
+            self.get_indices(state_rot_par_r, state_rot_par_p, state_rot_par_y, state_end_pos_x, state_end_pos_y, state_end_pos_z)
+
+        policy = []
+        for iter in range(0, n_iter):
+            action_value = []
+            policy =[]
+            print "Policy Iteration:", iter
+            # start_time = t.time()
+
+            with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+                if iter == 0:
+                    func = self.initial_loop
+                else:
+                    func = self.main_loop
+                for q, p in executor.map(func, action_set):
+                    action_value.append(q)
+                    policy.append(p)
+
+            print "Evaluating Policy..."
+            policy = policy/sum(policy)
+            v = sum(policy*action_value)
+            # end_time = t.time()
+            # print end_time-start_time
+
+        # mu = np.empty([301,301,101,11])
+        print "Final Policy evaluated."
+        print "Calulating State Visitation Frequency..."
+        mu = np.exp(-(state_rot_par_r)**2)*np.exp(-(state_rot_par_p )**2) * \
+             np.exp(-(state_rot_par_y )**2)*np.exp(-(state_end_pos_x )**2) * \
+             np.exp(-(state_end_pos_y )**2)*np.exp(-(state_end_pos_z )**2)
+        mu_reshape = np.reshape(mu, [11*11*11*11, 1])
+        mu = mu/sum(mu_reshape)
+        mu_last = mu
+        print "Initial State Frequency calculated..."
+        for time in range(0, n_time):
+            s = np.zeros([11, 11, 11, 11])
+            for act_index, action in enumerate(action_set):
+                new_state_rot_par_r, new_state_rot_par_p, new_state_rot_par_y, new_state_end_pos_x, new_state_end_pos_y, \
+                new_state_end_pos_z = model.get_next_state(state_rot_par_r, state_rot_par_p, state_rot_par_y,
+                                                           state_end_pos_x, state_end_pos_y, state_end_pos_z, action)
+
+                new_index_rot_par_r, new_index_rot_par_p, new_index_rot_par_y, new_index_end_pos_x, new_index_end_pos_y, \
+                new_index_end_pos_z = self.get_indices(new_state_rot_par_r, new_state_rot_par_p, new_state_rot_par_y,
+                                                  new_state_end_pos_x, new_state_end_pos_y, new_state_end_pos_z)
+
+                p = policy[act_index, index_rot_par_r, index_rot_par_p, index_rot_par_y, index_end_pos_x, index_end_pos_y,
+                           index_end_pos_z]
+                s = s + p*mu_last[new_index_rot_par_r, new_index_rot_par_p, new_index_rot_par_y, new_index_end_pos_x,
+                                  new_index_end_pos_y, new_index_end_pos_z]
+            mu_last = s
+            mu = mu + mu_last
+        mu = mu/n_time
+        state_visitation = mu_last*f
+        print "State Visitation Frequency calculated."
+        return np.sum(state_visitation.reshape(2, 11*11*11*11), axis=1), policy
 
