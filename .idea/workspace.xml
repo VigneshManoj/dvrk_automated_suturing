@@ -3,6 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="71a93876-613e-4815-b918-977607d6172a" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/max_ent_trial2/features.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial2/features.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/max_ent_trial2/misc.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial2/misc.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/max_ent_trial2/util_func.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial2/util_func.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -41,7 +43,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.move_dvrk_test">
+  <component name="RunManager" selected="Python.misc">
     <configuration name="max_ent" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="dvrk_automated_suturing" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -149,8 +151,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.move_dvrk_test" />
         <item itemvalue="Python.misc" />
+        <item itemvalue="Python.move_dvrk_test" />
         <item itemvalue="Python.maxent_gridworld" />
         <item itemvalue="Python.max_ent" />
         <item itemvalue="Python.test_code" />

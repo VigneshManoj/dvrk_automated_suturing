@@ -19,81 +19,33 @@ class mdp(object):
         self.action_set = []
         self.gamma = 0.9
         self.beta = 0.75
-        self.limit_values_angle = [[-0.5, 0.5], [-0.234, -0.155], [0.28, 0.443]]
-        self.limit_values_pos = [[-0.009, -0.003], [0.003, 007], [-0.014, -0.008]]
-        # float r, v, index_x, index_y, index_vel_theta, index_speed, state_x, state_y, state_vel_theta, state_speed
-        self.r = 0
+
+        # Model here means the 3D cube being created
+        # linspace limit values: limit_values_angle = [[-0.5, 0.5], [-0.234, -0.155], [0.28, 0.443]]
+        # linspace limit values: limit_values_pos = [[-0.009, -0.003], [0.003, 007], [-0.014, -0.008]]
+        # Creates the model state space based on the maximum and minimum values of the dataset provided by the user
+        # It is for created a 3D cube with 6 values specifying each cube node
+        # The value 11 etc decides how sparse the mesh size of the cube would be
+        self.model_pos_x_val = np.linspace(-0.009, -0.003, 11, dtype='float16')
+        self.model_pos_y_val = np.linspace(0.003, 0.007, 11, dtype='float16')
+        self.model_pos_z_val = np.linspace(-0.014, -0.008, 11, dtype='float16')
+        self.model_rot_r_val = np.linspace(-0.5, 0.5, 11, dtype='float16')
+        self.model_rot_p_val = np.linspace(-0.234, -0.155, 11, dtype='float16')
+        self.model_rot_y_val = np.linspace(0.28, 0.443, 11, dtype='float16')
+        # Change this value below based on number of points you select above, it basically assigns the indices values
+        self.unit_linspace = np.linspace(0, 10, 11)
+        # Initialize feature, reward and value function value to 0
+        self.f = np.empty([11, 11, 11, 11, 11, 11])
+        self.r = np.empty([11, 11, 11, 11, 11, 11])
         self.v = 0
+        self.integer_values = [0, 1, 2, 3, 4, 5]
+        # The state values are being provided by the max_ent program
         self.state_values = np.zeros(6)
-        self.state_index_values = np.zeros(6)
+        # The created model state values
         self.model_state_values = np.zeros(6)
+        self.model_index_values = np.zeros(6)
+        self.action_set = []
 
-        # for j1 in [-0.01,0,0.01]:
-        #     for j2 in [-0.01,0,0.01]:
-        #         for j3 in [-0.1, 0, 0.1]:
-        #             # for j4 in [-0.01, 0, 0.01]:
-        #             self.action_set.append(np.array([j1,j2,j3,0]))
-
-    '''
-        self.projection_matrix =np.matrix([[1/math.tan(np.pi/12)*744/1301, 0,0,0],
-                         [0, 1/math.tan(np.pi/12), 0,0],
-                         [0, 0, -(100+0.1)/(100-0.1), -1],
-                         [0, 0, -2*(100*0.1)/(100-0.1), 0]])
-
-        self.T_base_to_rcm = np.matrix([[0,-math.sin(np.pi/3),math.cos(np.pi/3),3+5*math.cos(np.pi/3)],
-                         [1,0,0,0],
-                         [0,math.cos(np.pi/3),math.sin(np.pi/3),6+5*math.sin(np.pi/3)],
-                         [0,0,0,1]])
-        self.modelViewAdjusted = np.matrix([[0, 0, 1, 0],
-                                           [1, 0, 0, 0],
-                                           [0, 1, 0, 0],
-                                           [0, 0, 0, 1]])
-        self.modelViewMatrix = self.getModelViewMatrix(self.joints)
-
-    
-    def Compute_DH_Matrix(self,alpha, a , theta, d):
-        DH_matrix=np.matrix([[math.cos(theta), -math.sin(theta), 0, a],
-                            [math.sin(theta)*math.cos(alpha), math.cos(theta)*math.cos(alpha), -math.sin(alpha), -d*math.sin(alpha)],
-                            [math.sin(theta)*math.sin(alpha), math.cos(theta)*math.sin(alpha), math.cos(alpha), d*math.cos(alpha)],
-                            [0, 0, 0, 1]])
-        return DH_matrix
-
-    def forwardKinematics(self, joints):
-        DH=np.matrix([[np.pi/2, 0.0000, joints[0]+np.pi/2, 0.0000],
-                     [-np.pi/2, 0.0000, joints[1]-np.pi/2, 0.0000],
-                     [np.pi/2, 0.0000, 0.0, joints[2]],
-                     [0.0000, 0.0000, joints[3], 0]])
-        FK=np.identity(4)
-        i=0
-        self.Compute_DH_Matrix(DH[0,0],DH[0,1],DH[0,2],DH[0,3])
-        for i in range(0, 4):
-            FK=FK * self.Compute_DH_Matrix(DH[i,0],DH[i,1],DH[i,2],DH[i,3])
-        FK = FK * np.matrix([[0,0,-1,0],[0,-1,0,0],[-1,0,0,0],[0,0,0,1]])
-        return FK
-    def getModelViewMatrix(self, joints):
-        modelViewMatrix = np.transpose(np.linalg.inv(self.T_base_to_rcm*self.forwardKinematics(joints)*self.modelViewAdjusted))
-        return modelViewMatrix
-    def update_joints(action):
-        self.joints = self.joints + action
-
-    # def get_next_state(self,x, y,action):
-    #     joints = self.joints + action
-    #     modelViewMatrix = self.getModelViewMatrix(joints)
-    #     screen_pos = np.transpose(modelViewMatrix*self.projection_matrix)*[[0],[0],[0],[1]]
-    #     state_position = [screen_pos[0,0]/(screen_pos[3,0]),screen_pos[1,0]/(screen_pos[3,0])]
-    #     next_state = [state_position[0], state_position[1], 0,0,0]
-    #     print state_position
-    #     return next_state
-
-    # @nb.jit
-    def get_next_state(self, rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z, action):
-        
-        left_end_effector = self.left_end_effector + action
-        # print delta
-        delta_s = (delta-cur_state*delta[3,:])
-        next_state  = cur_state + delta_s
-        return next_state[0,0], next_state[1,0], vtheta, s
-    '''
 
     def get_next_state(self, rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z, action):
         curr_state = np.array([rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z])
@@ -147,37 +99,57 @@ class mdp(object):
 # Created indices function. It basically reads the value and based on the value it rounds it of to the nearest state
 # space value. For RPY values it rounds it off to the nearest 0.01 value and for XYZ pos values it rounds it off to
 # the nearest 0.001 value
-    def get_indices(self, rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z):
+    '''
+    def create_indices(self, state_values):
 
-        # To round off to the nearest 0.005 decimal, do math.floor(x*200)/200, where 200 is basically 1/0.05
-        end_pos_x = math.floor(end_pos_x*200/float(200))
-        end_pos_y = math.floor(end_pos_y*200/float(200))
-        end_pos_z = math.floor(end_pos_z*200/float(200))
+        # The one at the end signifies its a unit value
+        rot_r1, rot_p1, rot_y1, pos_x1, pos_y1, pos_z1 = np.meshgrid(self.unit_linspace, self.unit_linspace,
+                                                                     self.unit_linspace, self.unit_linspace,
+                                                                     self.unit_linspace, self.unit_linspace)
+        mapped_rot_r = zip(rot_r1, state_values[0])
+        mapped_rot_p = zip(rot_p1, state_values[1])
+        mapped_rot_y = zip(rot_y1, state_values[2])
+        mapped_pos_x = zip(pos_x1, state_values[3])
+        mapped_pos_y = zip(pos_y1, state_values[4])
+        mapped_pos_z = zip(pos_z1, state_values[5])
 
-        # end_pos_x[end_pos_x <= -1.5] = -1.5
-        # end_pos_y[end_pos_y <= -1.5] = -1.5
-        # end_pos_z[end_pos_z <= -1.5] = -1.5
-        #
-        # end_pos_x[end_pos_x >= 1.5] = 1.5
-        # end_pos_y[end_pos_y >= 1.5] = 1.5
-        # end_pos_z[end_pos_z >= 1.5] = 1.5
+        return mapped_rot_r, mapped_rot_p, mapped_rot_y, mapped_pos_x, mapped_pos_y, mapped_pos_z
 
+    
+        To round off to the nearest 0.005 decimal, do math.floor(x*200)/200, where 200 is basically 1/0.05
+        end_pos_x = math.floor(state_values[3]*200/float(200))
+        end_pos_y = math.floor(state_values[4]*200/float(200))
+        end_pos_z = math.floor(state_values[5]*200/float(200))
         index_end_pos_x = (end_pos_x + 0.5)*10
         index_end_pos_y = (end_pos_y + 0.5)*10
         index_end_pos_z = (end_pos_z + 0.5)*10
-
         index_rot_par_r = (rot_par_r+math.pi)*50/math.pi + 0.5
         index_rot_par_p = (rot_par_p+math.pi)*50/math.pi + 0.5
         index_rot_par_y = (rot_par_y+math.pi)*50/math.pi + 0.5
+    '''
+    def get_indices(self, state_values):
 
-        index_end_pos_x = index_end_pos_x.astype(int)
-        index_end_pos_y = index_end_pos_y.astype(int)
-        index_end_pos_z = index_end_pos_z.astype(int)
-
-        index_rot_par_r = index_rot_par_r.astype(int)
-        index_rot_par_p = index_rot_par_p.astype(int)
-        index_rot_par_y = index_rot_par_y.astype(int)
-
+        index_rot_par_r = state_values[0]
+        index_rot_par_p = state_values[1]
+        index_rot_par_y = state_values[2]
+        index_end_pos_x = state_values[3]
+        index_end_pos_y = state_values[4]
+        index_end_pos_z = state_values[5]
+        # (z*10 + 0.09)/float(0.006)
+        # The limit values for the model being created are the following:
+        # It is based on the data created by the user, the minimum and maximum values of the data
+        # model_pos_x_val (-0.009, -0.003)
+        # model_pos_y_val (0.003, 0.007)
+        # model_pos_z_val (-0.014, -0.008)
+        # model_rot_r_val (-0.5, 0.5)
+        # model_rot_p_val (-0.234, -0.155)
+        # model_rot_y_val (0.28, 0.443)
+        index_rot_par_r = (index_rot_par_r * 10 + 0.5) / float(1)
+        index_rot_par_p = (index_rot_par_p * 10 + 0.234) / float(0.079)
+        index_rot_par_y = (index_rot_par_y * 10 + 0.28) / float(0.163)
+        index_end_pos_x = (index_end_pos_x * 10 + 0.009) / float(0.006)
+        index_end_pos_y = (index_end_pos_y * 10 + 0.003) / float(0.004)
+        index_end_pos_z = (index_end_pos_z * 10 + 0.014) / float(0.006)
         return index_rot_par_r, index_rot_par_p, index_rot_par_y, index_end_pos_x, index_end_pos_y, index_end_pos_z
 
 
@@ -193,13 +165,13 @@ class mdp(object):
 
     def main_loop(self, action):
         new_state_rot_par_r, new_state_rot_par_p, new_state_rot_par_y, new_state_end_pos_x, new_state_end_pos_y, \
-        new_state_end_pos_z = model.get_next_state(rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z, action)
+        new_state_end_pos_z = self.get_next_state(self.state_values, action)
 
         new_index_rot_par_r, new_index_rot_par_p, new_index_rot_par_y, new_index_end_pos_x, new_index_end_pos_y, \
         new_index_end_pos_z = self.get_indices(new_state_rot_par_r, new_state_rot_par_p, new_state_rot_par_y,
                                           new_state_end_pos_x, new_state_end_pos_y, new_state_end_pos_z)
 
-        q = r[index_rot_par_r, index_rot_par_p, index_rot_par_y, index_end_pos_x, index_end_pos_y, index_end_pos_z] + \
+        q = self.r[index_rot_par_r, index_rot_par_p, index_rot_par_y, index_end_pos_x, index_end_pos_y, index_end_pos_z] + \
             0.9*v[new_index_rot_par_r, new_index_rot_par_p, new_index_rot_par_y, new_index_end_pos_x, new_index_end_pos_y,
                   new_index_end_pos_z]
         p = np.exp(0.75*q)
@@ -207,60 +179,39 @@ class mdp(object):
 
     def initial_loop(self, action):
         # print "Calculating q..."
-        q = r[index_rot_par_r, index_rot_par_p, index_rot_par_y, index_end_pos_x, index_end_pos_y, index_end_pos_z]
+        q = self.r[self.model_index_values]
         # print "Calculating p..."
         p = np.exp(0.75*q)
         return q, p
 
     def get_policy(self, weights, n_iter, n_time):
-        global model
-
-        model = mdp(np.array([1, 0, 0, 0, 0, 0], dtype='float64'))
-        # Creates the model state space based on the maximum and minimum values of the dataset provided by the user
-        # It is for created a 3D cube with 6 values specifying each cube node
-        # The value 11 etc decides how sparse the mesh size of the cube would be
-        end_pos_x = np.linspace(model.limit_values_angle[0][0], model.limit_values_angle[0][1], 11, dtype='float16')
-        end_pos_y = np.linspace(model.limit_values_angle[1][0], model.limit_values_angle[1][1], 11, dtype='float16')
-        end_pos_z = np.linspace(model.limit_values_angle[2][0], model.limit_values_angle[2][1], 11, dtype='float16')
-
-        rot_par_r = np.linspace(model.limit_values_pos[0][0], model.limit_values_pos[0][1], 11, dtype='float16')
-        rot_par_p = np.linspace(model.limit_values_pos[1][0], model.limit_values_pos[1][1], 11, dtype='float16')
-        rot_par_y = np.linspace(model.limit_values_pos[1][0], model.limit_values_pos[2][1], 11, dtype='float16')
 
         print 'Creating state space...'
-        state_rot_par_r, state_rot_par_p, state_rot_par_y, state_end_pos_x, state_end_pos_y, state_end_pos_z = \
-            np.meshgrid(rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z, sparse=True)
+        self.model_state_values = np.meshgrid(self.model_rot_r_val, self.model_rot_p_val, self.model_rot_y_val,
+                                              self.model_pos_x_val, self.model_pos_y_val, self.model_pos_z_val,
+                                              sparse=True)
         print 'State space created.'
 
-        # plot_x = np.linspace(-1.5,1.5,21, dtype = 'float32')
-        # plot_z = np.linspace(0.9, 1, 3, dtype = 'float32')
-        # plot_xv, plot_yv, plot_zv = np.meshgrid(plot_x, plot_x, plot_z)
-        # print xv.shape
+        # Creating action set
+        # The rotation values have accuracy of 0.01 and position values have 0.001 accuracy
+        for rot_r in [-0.01, 0, 0.01]:
+            for rot_p in [-0.01, 0, 0.01]:
+                for rot_y in [-0.01, 0, 0.01]:
+                    for pos_x in [-0.001, 0, 0.001]:
+                        for pos_y in [-0.001, 0, 0.001]:
+                            for pos_z in [-0.001, 0, 0.001]:
+                                self.action_set.append(np.array([rot_r, rot_p, rot_y, pos_x, pos_y, pos_z]))
 
-        action_set= []
-        for rot_par_r in [-0.01, 0, 0.01]:
-            for rot_par_p in [-0.01, 0, 0.01]:
-                for rot_par_y in [-0.01, 0, 0.01]:
-                    for end_pos_x in [-0.001, 0, 0.001]:
-                        for end_pos_y in [-0.001, 0, 0.001]:
-                            for end_pos_z in [-0.001, 0, 0.001]:
-                                action_set.append(
-                                    np.array([rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z]))
+        # Get the reward and feature values for all the model state values
+        self.r, self.f = features.reward(self.model_state_values, weights)
 
-        # print len(action_set)
-        # r = reward(state_x, state_y, state_vel_theta, state_speed)
-
-        r, f = features.reward(state_rot_par_r, state_rot_par_p, state_rot_par_y, state_end_pos_x, state_end_pos_y,
-                               state_end_pos_z, weights)
-
-
-        index_rot_par_r, index_rot_par_p, index_rot_par_y, index_end_pos_x, index_end_pos_y, index_end_pos_z = \
-            self.get_indices(state_rot_par_r, state_rot_par_p, state_rot_par_y, state_end_pos_x, state_end_pos_y, state_end_pos_z)
+        # Get the index value for each of the model state value
+        self.model_index_values = self.get_indices(self.model_state_values)
 
         policy = []
         for iter in range(0, n_iter):
             action_value = []
-            policy =[]
+            policy = []
             print "Policy Iteration:", iter
             # start_time = t.time()
 

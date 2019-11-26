@@ -3,13 +3,14 @@ import math
 
 
 # Calculates reward function
-def reward(rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z, weights):
+def reward(state_values, weights):
 
     features = [feature1, feature2]
     r = 0
     f = []
     for n in range(0, len(features)):
-        f.append(features[n](rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z))
+        f.append(features[n](state_values[0], state_values[1], state_values[2],
+                             state_values[3], state_values[4], state_values[5]))
         r = r+weights[0, n]*f[n]
 # Created the feature function assuming everything has importance, so therefore added each parameter value
     return r, f
