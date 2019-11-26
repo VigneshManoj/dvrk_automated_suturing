@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="71a93876-613e-4815-b918-977607d6172a" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/max_ent_trial2/features.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial2/features.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/max_ent_trial2/max_ent.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial2/max_ent.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/max_ent_trial2/misc.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial2/misc.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/max_ent_trial2/util_func.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial2/util_func.py" afterDir="false" />
     </list>
