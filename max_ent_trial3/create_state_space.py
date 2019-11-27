@@ -41,10 +41,8 @@ class RobotStateSpace:
         return self.model_rot_par_r, self.model_rot_par_p, self.model_rot_par_y, \
                self.model_end_pos_x, self.model_end_pos_y, self.model_end_pos_z
 
-    def trajectories_data(self):
-        trajectories = np.genfromtxt(
-            "/home/vignesh/PycharmProjects/dvrk_automated_suturing/data/sample_trajectory_data_without_norm.csv",
-            delimiter=",")
+    def trajectories_data(self, file_path):
+        trajectories = np.genfromtxt(file_path, delimiter=",")
         state_trajectories = trajectories[:, 0:6]
         action_trajectories = trajectories[:, 6:12]
 
