@@ -3,9 +3,11 @@
   <component name="ChangeListManager">
     <list default="true" id="71a93876-613e-4815-b918-977607d6172a" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/max_ent_trial2/max_ent.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial2/max_ent.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/max_ent_trial2/misc.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial2/misc.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/max_ent_trial2/util_func.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial2/util_func.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/max_ent_trial3/features.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial3/features.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/max_ent_trial3/max_ent.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial3/max_ent.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/max_ent_trial3/misc.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial3/misc.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/max_ent_trial3/util_func.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial3/util_func.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -28,7 +30,7 @@
     <ConfirmationsSetting value="1" id="Add" />
   </component>
   <component name="PropertiesComponent">
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../AI_Course" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../Inverse-Reinforcement-Learning" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RunDashboard">

@@ -132,6 +132,48 @@ class RobotMarkovModel(object):
         p = np.exp(0.75*q)
         return q, p
 
+    def irl(feature_matrix, n_actions, discount, transition_probability,
+            trajectories, epochs, learning_rate):
+        """
+        Find the reward function for the given trajectories.
+
+        feature_matrix: Matrix with the nth row representing the nth state. NumPy
+            array with shape (N, D) where N is the number of states and D is the
+            dimensionality of the state.
+        n_actions: Number of actions A. int.
+        discount: Discount factor of the MDP. float.
+        transition_probability: NumPy array mapping (state_i, action, state_k) to
+            the probability of transitioning from state_i to state_k under action.
+            Shape (N, A, N).
+        trajectories: 3D array of state/action pairs. States are ints, actions
+            are ints. NumPy array with shape (T, L, 2) where T is the number of
+            trajectories and L is the trajectory length.
+        epochs: Number of gradient descent steps. int.
+        learning_rate: Gradient descent learning rate. float.
+        -> Reward vector with shape (N,).
+        """
+
+        n_states, d_states = feature_matrix.shape
+
+        # Initialise weights.
+        alpha = rn.uniform(size=(d_states,))
+
+        # Calculate the feature expectations \tilde{phi}.
+        feature_expectations = find_feature_expectations(feature_matrix,
+                                                         trajectories)
+
+        # Gradient descent on alpha.
+        for i in range(epochs):
+            # print("i: {}".format(i))
+            r = feature_matrix.dot(alpha)
+            expected_svf = find_expected_svf(n_states, r, n_actions, discount,
+                                             transition_probability, trajectories)
+            grad = feature_expectations - feature_matrix.T.dot(expected_svf)
+
+            alpha += learning_rate * grad
+
+        return feature_matrix.dot(alpha).reshape((n_states,))
+
     def get_policy(self, weights, n_iter, n_time):
 
         print 'Creating state space...'

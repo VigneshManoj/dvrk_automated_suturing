@@ -1,7 +1,11 @@
 import numpy as np
+import pprint
+pp = pprint.PrettyPrinter(indent=4)
 from sys import getsizeof
+import matplotlib.pyplot as plt
 import csv
 import math
+from pprint import pprint
 # rot_par_r = np.linspace(-math.pi, math.pi, 101, dtype='float64')
 # rot_par_s = np.linspace(-math.pi, math.pi, 1001, dtype='float64')
 # csv = np.genfromtxt ("/home/vignesh/PycharmProjects/dvrk_automated_suturing/data/sample_trajectory_data.csv" , delimiter=",")
@@ -14,46 +18,99 @@ import math
 # X = df.iloc[:, 0:6]
 # # print "x is ", type(X)
 # a = np.zeros([1, 6])
-# print a
-# for i in range(0, 5):
-#     c = np.append(a, [2, 3, 4, 5, 7], axis=0)
-#     # print a
-#     print "reps"
-# print c
-# end_pos_y = np.array([[0.338]])
-# x= np.round(end_pos_y.astype(float)**2,3)
-# print x
+# model_rot_r_val = np.linspace(-0.5, 0.5, 11, dtype='float16')
+# model_rot_p_val = np.linspace(-0.5, 0, 11, dtype='float16')
+# model_rot_y_val = np.linspace(0, 0.5, 11, dtype='float16')
+# model_pos_x_val = np.linspace(0.00, -0.005, 11, dtype='float16')
+# model_pos_y_val = np.linspace(0.00, 0.005, 11, dtype='float16')
+# model_pos_z_val = np.linspace(-0.05, -0.01, 11, dtype='float16')
 # print round(float(x)**2, 3)
-# end_pos_x = np.linspace(-1.5, 1.5, 301, dtype='float64')
-# end_pos_y = np.linspace(-1.5, 1.5, 301, dtype='float64')
-# end_pos_z = np.linspace(-1.5, 1.5, 301, dtype='float64')
+# model_rot_r_val = np.linspace(-0.5, 0.5, 11, dtype='float16')
+# model_rot_p_val = np.linspace(-0.5, 0.5, 11, dtype='float16')
+# model_rot_y_val = np.linspace(-0.5, 0.5, 11, dtype='float16')
+# model_pos_x_val = np.linspace(-0.009, -0.003, 11, dtype='float16')
+# model_pos_y_val = np.linspace(-0.009, -0.003, 11, dtype='float16')
+# model_pos_z_val = np.linspace(-0.009, -0.003, 11, dtype='float16')
 
-# rot_par_r = np.linspace(-0.5, 0.5, 101, dtype='float16')
-# rot_par_p = np.linspace(-0.5, 0.5, 11, dtype='float32')
-# rot_par_y = np.linspace(-math.pi, math.pi, 101, dtype='float32')
-x = np.linspace(-0.3, 0.0, 4)
-y = np.linspace(-0.3, 0.0, 4)
-z = np.linspace(0.0, 0.3, 4)
-x2 = np.linspace(-0.3, 0.0, 4)
-y2 = np.linspace(-0.3, 0.0, 4)
-z2 = np.linspace(0.0, 0.3, 4)
+# end_pos_x = np.linspace(-0.015, 0.008, 11, dtype='float16')
+# end_pos_y = np.linspace(-0.015, 0.008, 11, dtype='float16')
+# end_pos_z = np.linspace(-0.015, 0.008, 11, dtype='float16')
+#
+# x1 = np.linspace(-0.5, 0.5, 11)
+# y1 = np.linspace(0., 0.5, 11)
+# z1 = np.linspace(-0.009, -0.003, 11)
+#
+# x, y, z = np.meshgrid(x1, y1, z1, sparse=False)
+# # print x
+# # print y
+# integer_values = [0, 1, 2, 3, 4, 5]
+# xt = (x*10 + 5)/1
+# # y = (y*10 + 15)/3
+# yt = (y*10 )/0.5
+# zt = (z*10 + 0.09)/float(0.006)
+# # z = (z*10)/float(-0.003)
+# model_state_values0, model_state_values1, model_state_values2, model_state_values3, model_state_values4, model_state_values5  = np.meshgrid(model_rot_r_val, model_rot_p_val, model_rot_y_val,
+#                                               model_pos_x_val, model_pos_y_val, model_pos_z_val, sparse=True)
+# index_rot_par_r = model_state_values0
+# index_rot_par_p = model_state_values1
+# index_rot_par_y = model_state_values2
+# index_end_pos_x = model_state_values3
+# index_end_pos_y = model_state_values4
+# index_end_pos_z = model_state_values5
+# index_rot_par_r = (index_rot_par_r * 10 + 5) / float(1)
+# index_rot_par_p = (index_rot_par_p * 10 + 5) / float(1)
+# index_rot_par_y = (index_rot_par_y * 10 + 5) / float(1)
+# index_end_pos_x = (index_end_pos_x * 10 + 0.09) / float(0.006)
+# index_end_pos_y = (index_end_pos_y * 10 + 0.09) / float(0.006)
+# index_end_pos_z = (index_end_pos_z * 10 + 0.09) / float(0.006)
+# print model_state_values0.shape
+# print index_end_pos_z.astype(int)
 
-print x
-# xv, yv, zv, xv2, yv2, zv2 = np.meshgrid(x, y, z, x2, y2, z2)  # make sparse output arrays
-xv, yv, zv = np.meshgrid(x, y, z)  # make sparse output arrays
+# print xt[5][0][0] # 5
+# print x[5][5][0]
+# print "z is", z
+'''
+# X = (['X' for key, i in enumerate(x1)], [key for key, i in enumerate(x1)], [i for i in x1])
+X = {key: i for key, i in enumerate(x1)}
+Y = {key: i for key, i in enumerate(y1)}
+Z = {key: i for key, i in enumerate(x1)}
+TH = {key: i for key, i in enumerate(y1)}
+PH = {key: i for key, i in enumerate(x1)}
+SC = {key: i for key, i in enumerate(y1)}
 
-print "xv", xv.shape, xv[0].shape, xv[0]
-print "yv", yv
-# print "zv", zv
-# print "xv2", xv2.shape
-# print "yv2", yv2
-# print "zv2", zv2
-# x1 = 0.525
-# x1 = np.round(x1,2)
-# y = np.round(y,2)
-#
-#
-# x1[x1<=-1.5] = -1.5
-# x1[x1 >= 1.5] = 1.5
-#
-# print x1
+AX = ['X', 'Y', 'Z', 'TH', 'PH', 'SC']
+Keys = [i for i in range(11)]
+
+
+def ret_id(x,y,z,th,ph,sc):
+    return (X[x], Y[y], Z[z], TH[th], PH[ph], SC[sc])
+
+States_map = {
+    'X': X, 'Y': Y, 'Z': Z, 'TH': TH, 'PH': PH, 'SC': SC
+}
+pprint(States_map)
+
+for ax in AX:
+    for key in Keys:
+        k = States_map[ax]
+        print (ax, States_map[ax], key, k[key])
+'''
+state_rot_par_r, state_rot_par_p, state_rot_par_y, state_end_pos_x, state_end_pos_y, state_end_pos_z = [2, 2, 2, 2, 2, 2]
+
+arr = np.array([state_rot_par_r, state_rot_par_p, state_rot_par_y, state_end_pos_x, state_end_pos_y, state_end_pos_z])
+mu = np.exp(-(state_rot_par_r)**2)*np.exp(-(state_rot_par_p )**2) * \
+             np.exp(-(state_rot_par_y )**2)*np.exp(-(state_end_pos_x )**2) * \
+             np.exp(-(state_end_pos_y )**2)*np.exp(-(state_end_pos_z )**2)
+mu2 = np.exp(-arr**2)
+print mu
+print mu2
+# print States_map['X'][5]
+
+# print str(m) + ', ' + str(n)
+# x = [[i for i in range(n)] for j in range(m)]
+# y = (y*10 + 15)/3
+# pprint(x)
+# print y
+# print zi
+# pped[, 1.5]
+
