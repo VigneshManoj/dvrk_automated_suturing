@@ -15,8 +15,7 @@ def main(discount, epochs, learning_rate, weights, trajectory_length):
     # print model_rot_par_r
     state_trajectory_array, action_trajectory_array = robot_mdp.trajectories_data()
     n_trajectories = len(state_trajectory_array)
-    action_set = robot_mdp.create_action_set_func()
-    reward = irl.max_ent_irl(trajectory_features_array, complete_features_array, action_set, discount,
+    reward = irl.max_ent_irl(trajectory_features_array, complete_features_array, discount,
                              n_trajectories, epochs, learning_rate)
 
     print "r is ", reward

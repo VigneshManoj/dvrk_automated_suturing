@@ -5,6 +5,7 @@ import math
 
 class RobotMarkovModel:
     def __init__(self):
+        '''
         # Model here means the 3D cube being created
         # linspace limit values: limit_values_angle = [[-0.5, 0.5], [-0.234, -0.155], [0.28, 0.443]]
         # linspace limit values: limit_values_pos = [[-0.009, -0.003], [0.003, 007], [-0.014, -0.008]]
@@ -26,13 +27,14 @@ class RobotMarkovModel:
         self.model_end_pos_x = []
         self.model_end_pos_y = []
         self.model_end_pos_z = []
+        '''
         trajectories = np.genfromtxt\
             ("/home/vignesh/PycharmProjects/dvrk_automated_suturing/data/sample_trajectory_data_without_norm.csv",
              delimiter=",")
         self.state_trajectories = trajectories[:, 0:6]
         self.action_trajectories = trajectories[:, 6:12]
         self.action_set = []
-
+    '''
     def state_space_model(self):
 
         print "Creating State space "
@@ -48,7 +50,7 @@ class RobotMarkovModel:
 
         return self.model_rot_par_r, self.model_rot_par_p, self.model_rot_par_y, \
                self.model_end_pos_x, self.model_end_pos_y, self.model_end_pos_z
-
+    '''
     def trajectories_data(self):
         # Return trajectories data if any function requires it outside this class
         return self.state_trajectories, self.action_trajectories
@@ -102,17 +104,6 @@ class RobotMarkovModel:
         feature_2 = np.exp(-(rot_par_r**2 + rot_par_p**2 + rot_par_y**2 + end_pos_x**2 + end_pos_y**2 + end_pos_z**2)/0.1**2)
         # print f2
         return feature_2
-
-    def create_action_set_func(self):
-        # Creates the action space required for the robot. It is defined by the user beforehand itself
-        for rot_r in [-0.01, 0, 0.01]:
-            for rot_p in [-0.01, 0, 0.01]:
-                for rot_y in [-0.01, 0, 0.01]:
-                    for pos_x in [-0.001, 0, 0.001]:
-                        for pos_y in [-0.001, 0, 0.001]:
-                            for pos_z in [-0.001, 0, 0.001]:
-                                self.action_set.append(np.array([rot_r, rot_p, rot_y, pos_x, pos_y, pos_z]))
-        return self.action_set
 
     def features_func(self, rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z):
 
