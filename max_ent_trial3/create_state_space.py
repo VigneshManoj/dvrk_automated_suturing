@@ -89,7 +89,7 @@ class RobotMarkovModel:
             features_arr.append(features[n](rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z))
             reward = reward + weights[0, n]*features_arr[n]
         # Created the feature function assuming everything has importance, so therefore added each parameter value
-        return reward, features_arr
+        return np.array(reward), np.array(features_arr)
 
     # Created feature set1 which basically takes the exponential of sum of individually squared value
     def features_array_prim_func(self, rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z):
@@ -127,7 +127,9 @@ class RobotMarkovModel:
         # Creates the array of features and rewards for the whole trajectory
         # It calls the RobotMarkovModel class reward function which returns the reward and features for that specific
         # state values. These values are repeatedly added until the length of trajectory
-        trajectories_features = []
+        complete_feature_array = []
+        features = 0
+        sum_trajectories_features = []
         trajectory_features = np.zeros([2, 1], dtype='float32')
         for i in range(0, self.state_trajectories.shape[0]):
             # Reads only the state trajectory data
@@ -139,8 +141,9 @@ class RobotMarkovModel:
             end_pos_z = self.state_trajectories[i, 5]
 
             features = self.features_func(rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z)
+            complete_feature_array.append(features)
             trajectory_features = trajectory_features + np.vstack((features[0], features[1]))
-        trajectories_features.append(trajectory_features)
-        # Returns the array of trajectory features and reward
-        return trajectories_features
+        sum_trajectories_features.append(trajectory_features)
+        # Returns the array of trajectory features and returns the array of all the features
+        return np.array(sum_trajectories_features), np.array(complete_feature_array)
 

@@ -5,7 +5,7 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/max_ent_trial3/create_state_space.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial3/create_state_space.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/max_ent_trial3/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial3/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/max_ent_trial3/robot_mdp.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/max_ent_trial3/max_ent_irl.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial3/max_ent_irl.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -44,6 +44,27 @@
     </option>
   </component>
   <component name="RunManager" selected="Python.main">
+    <configuration name="create_state_space" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="dvrk_automated_suturing" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/max_ent_trial3" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/max_ent_trial3/create_state_space.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="dvrk_automated_suturing" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -65,7 +86,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="max_ent" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="max_ent_irl" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="dvrk_automated_suturing" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -73,32 +94,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/max_ent_trial2" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/max_ent_trial3" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/max_ent_trial2/max_ent.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="maxent_gridworld" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <module name="dvrk_automated_suturing" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/max_ent_trial4_InverseRL" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/max_ent_trial4_InverseRL/maxent_gridworld.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/max_ent_trial3/max_ent_irl.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -152,10 +152,10 @@
     <recent_temporary>
       <list>
         <item itemvalue="Python.main" />
+        <item itemvalue="Python.max_ent_irl" />
+        <item itemvalue="Python.create_state_space" />
         <item itemvalue="Python.misc" />
         <item itemvalue="Python.move_dvrk_test" />
-        <item itemvalue="Python.maxent_gridworld" />
-        <item itemvalue="Python.max_ent" />
       </list>
     </recent_temporary>
   </component>
