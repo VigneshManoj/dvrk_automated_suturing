@@ -6,7 +6,7 @@
       <change beforePath="$PROJECT_DIR$/max_ent_trial3/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial3/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/max_ent_trial3/max_ent_irl.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial3/max_ent_irl.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/max_ent_trial3/robot_markov_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial3/robot_markov_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/max_ent_trial3/state_space.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/max_ent_trial3/robot_state_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial3/robot_state_utils.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />

@@ -8,17 +8,22 @@ class MaxEntIRL:
         self.reward = 0
         self.trajectory_length = trajectory_length
 
+    # Calculates the reward function weights using the Max Entropy Algorithm
     def max_ent_irl(self, trajectory_features_array, complete_features_array, discount,
                              n_trajectories, epochs, learning_rate):
+        # Finds the total number of states and dimesions of the list of features array
         n_states, d_states = complete_features_array.shape
         # print "c feature", complete_features_array.shape
         # print "length of action set", len(action_set)
+        # Initialize alpha with random weights based on the dimensionality of the feature space
         alpha = rn.uniform(size=(d_states,))
         print "alpha is ", alpha
+        # Find feature expectations, sum of features of trajectory/number of trajectories
         feature_expectations = self.find_feature_expectations(trajectory_features_array)
         # Gradient descent on alpha.
         for i in range(epochs):
             # print("i: {}".format(i))
+            # Multiplies the features with randomized alpha value, size of output Ex: dot(449*2, 2x1)
             self.reward = complete_features_array.dot(alpha)
             expected_svf = self.find_expected_svf(discount, n_trajectories)
             # grad = feature_expectations - complete_features_array.T.dot(expected_svf)

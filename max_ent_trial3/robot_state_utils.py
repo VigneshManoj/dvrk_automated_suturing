@@ -29,7 +29,7 @@ class RobotStateUtils:
         self.action_set = []
 
     def create_state_space_model_func(self):
-
+        # Creates the state space of the robot based on the values initialized for linspace by the user
         print "Creating State space "
         self.model_rot_par_r, self.model_rot_par_p, self.model_rot_par_y, self.model_end_pos_x, self.model_end_pos_y, \
         self.model_end_pos_z = np.meshgrid(self.model_limits_rot_r_val,
