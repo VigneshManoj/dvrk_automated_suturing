@@ -23,12 +23,20 @@ class RobotStateUtils:
         self.model_end_pos_y = []
         self.model_end_pos_z = []
         self.action_set = []
-        # The created model state values
+        # The created model values index positions
         self.model_index_pos_x = []
         self.model_index_pos_y = []
         self.model_index_pos_z = []
+        # The next state values index positions and position values of the new state
+        self.model_new_index_pos_x = []
+        self.model_new_index_pos_y = []
+        self.model_new_index_pos_z = []
+        self.model_new_end_pos_x = []
+        self.model_new_end_pos_y = []
+        self.model_new_end_pos_z = []
         self.rewards = []
         self.features = []
+        self.state_action_value = []
 
     def create_state_space_model_func(self):
         # Creates the state space of the robot based on the values initialized for linspace by the user
@@ -49,7 +57,7 @@ class RobotStateUtils:
                     self.action_set.append(np.array([pos_x, pos_y, pos_z]))
         return self.action_set
 
-    def get_next_state(self, curr_state, action):
+    def get_next_state(self, ):
         # curr_state = np.array([rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z])
         # Since the state value is normalized by dividing with 2*pi, so multiply with 2*pi and add action
         # Then divide final result by 2*pi to normalize the data again
@@ -59,11 +67,13 @@ class RobotStateUtils:
     def policy_iteration_func(self):
         # new_state_rot_par_r, new_state_rot_par_p, new_state_rot_par_y, new_state_end_pos_x, new_state_end_pos_y, \
         # new_state_end_pos_z = self.get_next_state(self.state_values, action)
-        new_state_values = self.get_next_state(self.state_values, self.action_set)
+        self.model_new_end_pos_x, self.model_new_end_pos_y, self.model_new_end_pos_z = self.get_next_state()
 
-        new_index_values = self.get_indices(new_state_values)
+        self.model_new_index_pos_x, self.model_new_index_pos_y, self.model_new_index_pos_z = \
+            self.get_indices(new_state_values)
 
-        q = self.rewards[self.model_index_values] + 0.9*self.v[new_index_values]
+        q = self.rewards[self.model_index_pos_x, self.model_index_pos_y, self.model_index_pos_z] + \
+            0.9*self.state_action_value[new_index_values]
         p = np.exp(0.75*q)
         return q, p
 
@@ -80,9 +90,9 @@ class RobotStateUtils:
         self.create_state_space_model_func()
         self.create_action_set_func()
         n_actions = len(self.action_set)
-        self.model_index_pos_x, self.model_index_pos_y, self.model_index_pos_z = self.get_indices( self.model_end_pos_x,
-                                                                                                   self.model_end_pos_y,
-                                                                                                   self.model_end_pos_z)
+        self.model_index_pos_x, self.model_index_pos_y, self.model_index_pos_z = self.get_indices(self.model_end_pos_x,
+                                                                                                  self.model_end_pos_y,
+                                                                                                  self.model_end_pos_z)
 
         self.rewards, self.features = robot_mdp.reward_func(self.model_end_pos_x, self.model_end_pos_y,
                                                             self.model_end_pos_z, alpha)
@@ -106,7 +116,7 @@ class RobotStateUtils:
                     policy.append(p)
             print "Evaluating Policy..."
             policy = policy / sum(policy)
-            state_action_value = sum(policy * action_value)
+            self.state_action_value = sum(policy * action_value)
 
 
     def get_indices(self, model_end_pos_x, model_end_pos_y, model_end_pos_z):
