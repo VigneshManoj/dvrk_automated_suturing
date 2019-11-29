@@ -6,8 +6,9 @@ from robot_markov_model import RobotMarkovModel
 import numpy.random as rn
 
 
-class RobotStateUtils:
+class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
     def __init__(self):
+        super(RobotStateUtils, self).__init__(max_workers=8)
         # Model here means the 3D cube being created
         # linspace limit values: limit_values_angle = [[-0.5, 0.5], [-0.234, -0.155], [0.28, 0.443]]
         # linspace limit values: limit_values_pos = [[-0.009, -0.003], [0.003, 007], [-0.014, -0.008]]
@@ -56,7 +57,7 @@ class RobotStateUtils:
             for pos_y in [-0.001, 0, 0.001]:
                 for pos_z in [-0.001, 0, 0.001]:
                     self.action_set.append(np.array([pos_x, pos_y, pos_z]))
-        return self.action_set
+        # return self.action_set
     '''
     def get_next_state(self):
         # curr_state = np.array([rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z])
@@ -78,11 +79,12 @@ class RobotStateUtils:
         p = np.exp(0.75*q)
         return q, p
     '''
-    def initialize_policy_iteration_func(self):
+    def initialize_policy_iteration_func(self, action):
         # print
         q = self.rewards[self.model_index_pos_x, self.model_index_pos_y, self.model_index_pos_z]
-        print "Calculating q...", q.shape
-        print "Calculating p..."
+        # print "Calculating q...", q.shape
+        # print "q of value is ", q[0][3][8]
+        # print "Calculating p..."
         p = np.exp(q)
         return q, p
 
@@ -98,7 +100,8 @@ class RobotStateUtils:
 
         self.rewards, self.features = robot_mdp.reward_func(self.model_end_pos_x, self.model_end_pos_y,
                                                             self.model_end_pos_z, alpha)
-        print "rewards is ", self.rewards.shape
+        # print "rewards is ", self.rewards.shape
+        # print "reward 0 ", self.rewards[0][3][8]
         # return 0
 
         ### Note: look into trying to make this a Numpy array
@@ -106,22 +109,33 @@ class RobotStateUtils:
         for i in range(0, n_policy_iter):
             action_value = []
             policy = []
-            print "Policy Iteration:", i
+            # print "Policy Iteration:", i
             # start_time = t.time()
 
-            with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
-                if i == 0:
-                    # Run it on the first try to initialize the value of function of all the states to a value
-                    func = self.initialize_policy_iteration_func()
-                # else:
-                    # Run it later to calculate the value function of all the states present
-                    # func = self.policy_iteration_func()
-                for q, p in executor.map(func, self.action_set):
-                    action_value.append(q)
-                    policy.append(p)
+                # Run it on the first try to initialize the value of function of all the states to a value
+                # func = self.initialize_policy_iteration_func(self.model_index_pos_x, self.model_index_pos_y, self.model_index_pos_z)
+            func = self.initialize_policy_iteration_func
+            for q, p in self.map(func, self.action_set):
+                action_value.append(q)
+                policy.append(p)
+
+            # with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+            #     if i == 0:
+            #         # Run it on the first try to initialize the value of function of all the states to a value
+            #         # func = self.initialize_policy_iteration_func(self.model_index_pos_x, self.model_index_pos_y, self.model_index_pos_z)
+            #         func = outside_policy_iteration_func(1)
+            #
+            #     # else:
+            #         # Run it later to calculate the value function of all the states present
+            #         # func = self.policy_iteration_func()
+            #     # print "action space ", self.action_set
+            #     for q, p in executor.map(func, self.action_set):
+            #         action_value.append(q)
+            #         policy.append(p)
             print "Evaluating Policy..."
             policy = policy / sum(policy)
             self.state_action_value = sum(policy * action_value)
+            print "state action value ", self.state_action_value
         return policy
 
     def get_indices(self, model_end_pos_x, model_end_pos_y, model_end_pos_z):
@@ -143,7 +157,6 @@ class RobotStateUtils:
 
         return index_end_pos_x.astype(int), index_end_pos_y.astype(int), index_end_pos_z.astype(int)
 
-
 def main(alpha, discount, n_policy_iter):
     # Creates an object for using the RobotMarkovModel class
     utils = RobotStateUtils()
@@ -154,6 +167,6 @@ if __name__ == '__main__':
     trajectory_length = 1
     weights = np.random.rand(1, 2)
     # The number of times policy iteration needs to be run
-    n_policy_iter = 1
+    n_policy_iter = 3
     discount = 0.9
     main(weights, discount, n_policy_iter)

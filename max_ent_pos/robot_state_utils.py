@@ -57,7 +57,7 @@ class RobotStateUtils:
                     self.action_set.append(np.array([pos_x, pos_y, pos_z]))
         return self.action_set
 
-    def get_next_state(self, ):
+    def get_next_state(self, curr_state, action):
         # curr_state = np.array([rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z])
         # Since the state value is normalized by dividing with 2*pi, so multiply with 2*pi and add action
         # Then divide final result by 2*pi to normalize the data again

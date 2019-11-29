@@ -99,7 +99,7 @@ class RobotMarkovModel:
             print "features size ", features_arr[n].shape
             reward = reward + alpha[0, n]*features_arr[n]
         # Created the feature function assuming everything has importance, so therefore added each parameter value
-        return np.array(reward), np.array(features_arr)
+        return reward, features_arr
 
     # Created feature set1 which basically takes the exponential of sum of individually squared value
     def features_array_prim_func(self, end_pos_x, end_pos_y, end_pos_z):
