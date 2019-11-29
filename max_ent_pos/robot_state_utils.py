@@ -13,26 +13,17 @@ class RobotStateUtils:
         # Creates the model state space based on the maximum and minimum values of the dataset provided by the user
         # It is for created a 3D cube with 6 values specifying each cube node
         # The value 11 etc decides how sparse the mesh size of the cube would be
-        self.model_limits_rot_r_val = np.linspace(-0.5, 0.5, 11, dtype='float16')
-        self.model_limits_rot_p_val = np.linspace(-0.5, 0.5, 11, dtype='float16')
-        self.model_limits_rot_y_val = np.linspace(-0.5, 0.5, 11, dtype='float16')
         self.model_limits_pos_x_val = np.linspace(-0.009, -0.003, 11, dtype='float16')
         self.model_limits_pos_y_val = np.linspace(-0.009, -0.003, 11, dtype='float16')
         self.model_limits_pos_z_val = np.linspace(-0.009, -0.003, 11, dtype='float16')
         # There are 6 parameters defining a state value of the robot, RPY and XYZ
-        self.n_states = 6
+        self.n_states = 3
         # The created model state values
-        self.model_rot_par_r = []
-        self.model_rot_par_p = []
-        self.model_rot_par_y = []
         self.model_end_pos_x = []
         self.model_end_pos_y = []
         self.model_end_pos_z = []
         self.action_set = []
         # The created model state values
-        self.model_index_rot_r = []
-        self.model_index_rot_p = []
-        self.model_index_rot_y = []
         self.model_index_pos_x = []
         self.model_index_pos_y = []
         self.model_index_pos_z = []
@@ -42,14 +33,9 @@ class RobotStateUtils:
     def create_state_space_model_func(self):
         # Creates the state space of the robot based on the values initialized for linspace by the user
         print "Creating State space "
-        self.model_rot_par_r, self.model_rot_par_p, self.model_rot_par_y, self.model_end_pos_x, self.model_end_pos_y, \
-        self.model_end_pos_z = np.meshgrid(self.model_limits_rot_r_val,
-                                           self.model_limits_rot_p_val,
-                                           self.model_limits_rot_y_val,
-                                           self.model_limits_pos_x_val,
-                                           self.model_limits_pos_y_val,
-                                           self.model_limits_pos_z_val,
-                                           sparse=True)
+        self.model_end_pos_x, self.model_end_pos_y, self.model_end_pos_z = np.meshgrid(self.model_limits_pos_x_val,
+                                                                                       self.model_limits_pos_y_val,
+                                                                                       self.model_limits_pos_z_val)
         print "State space has been created"
 
         # return self.model_rot_par_r, self.model_rot_par_p, self.model_rot_par_y, \
@@ -57,13 +43,10 @@ class RobotStateUtils:
 
     def create_action_set_func(self):
         # Creates the action space required for the robot. It is defined by the user beforehand itself
-        for rot_r in [-0.01, 0, 0.01]:
-            for rot_p in [-0.01, 0, 0.01]:
-                for rot_y in [-0.01, 0, 0.01]:
-                    for pos_x in [-0.001, 0, 0.001]:
-                        for pos_y in [-0.001, 0, 0.001]:
-                            for pos_z in [-0.001, 0, 0.001]:
-                                self.action_set.append(np.array([rot_r, rot_p, rot_y, pos_x, pos_y, pos_z]))
+        for pos_x in [-0.001, 0, 0.001]:
+            for pos_y in [-0.001, 0, 0.001]:
+                for pos_z in [-0.001, 0, 0.001]:
+                    self.action_set.append(np.array([pos_x, pos_y, pos_z]))
         return self.action_set
 
     def get_next_state(self, curr_state, action):
@@ -86,8 +69,7 @@ class RobotStateUtils:
 
     def initialize_policy_iteration_func(self):
         # print "Calculating q..."
-        q = self.rewards[self.model_index_rot_r, self.model_index_rot_p, self.model_index_rot_y,
-                         self.model_index_pos_x, self.model_index_pos_y, self.model_index_pos_z]
+        q = self.rewards[self.model_index_pos_x, self.model_index_pos_y, self.model_index_pos_z]
         # print "Calculating p..."
         p = np.exp(q)
         return q, p
@@ -98,14 +80,12 @@ class RobotStateUtils:
         self.create_state_space_model_func()
         self.create_action_set_func()
         n_actions = len(self.action_set)
-        self.model_index_rot_r, self.model_index_rot_p, self.model_index_rot_y, self.model_index_pos_x, \
-        self.model_index_pos_y, self.model_index_pos_z = self.get_indices(self.model_rot_par_r, self.model_rot_par_p,
-                                                                          self.model_rot_par_y, self.model_end_pos_x,
-                                                                          self.model_end_pos_y, self.model_end_pos_z)
+        self.model_index_pos_x, self.model_index_pos_y, self.model_index_pos_z = self.get_indices( self.model_end_pos_x,
+                                                                                                   self.model_end_pos_y,
+                                                                                                   self.model_end_pos_z)
 
-        self.rewards, self.features = robot_mdp.reward_func(self.model_rot_par_r, self.model_rot_par_p,
-                                                            self.model_rot_par_y, self.model_end_pos_x,
-                                                            self.model_end_pos_y, self.model_end_pos_z, alpha)
+        self.rewards, self.features = robot_mdp.reward_func(self.model_end_pos_x, self.model_end_pos_y,
+                                                            self.model_end_pos_z, alpha)
         ### Note: look into trying to make this a Numpy array
         policy = []
         for i in range(0, n_policy_iter):
@@ -129,12 +109,8 @@ class RobotStateUtils:
             state_action_value = sum(policy * action_value)
 
 
-    def get_indices(self, model_rot_par_r, model_rot_par_p, model_rot_par_y,
-                    model_end_pos_x, model_end_pos_y, model_end_pos_z):
+    def get_indices(self, model_end_pos_x, model_end_pos_y, model_end_pos_z):
 
-        index_rot_par_r = model_rot_par_r
-        index_rot_par_p = model_rot_par_p
-        index_rot_par_y = model_rot_par_y
         index_end_pos_x = model_end_pos_x
         index_end_pos_y = model_end_pos_y
         index_end_pos_z = model_end_pos_z
@@ -147,15 +123,11 @@ class RobotStateUtils:
         # model_rot_r_val (-0.5, 0.5)
         # model_rot_p_val (-0.234, -0.155)
         # model_rot_y_val (0.28, 0.443)
-        index_rot_par_r = (index_rot_par_r * 10 + 5) / float(1)
-        index_rot_par_p = (index_rot_par_p * 10 + 5) / float(0.079)
-        index_rot_par_y = (index_rot_par_y * 10 + 5) / float(0.163)
         index_end_pos_x = (index_end_pos_x * 10 + 0.09) / float(0.006)
         index_end_pos_y = (index_end_pos_y * 10 + 0.09) / float(0.006)
         index_end_pos_z = (index_end_pos_z * 10 + 0.09) / float(0.006)
 
-        return index_rot_par_r.astype(int), index_rot_par_p.astype(int), index_rot_par_y.astype(int), \
-               index_end_pos_x.astype(int), index_end_pos_y.astype(int), index_end_pos_z.astype(int)
+        return index_end_pos_x.astype(int), index_end_pos_y.astype(int), index_end_pos_z.astype(int)
 
 
 

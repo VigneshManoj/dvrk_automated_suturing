@@ -3,13 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="71a93876-613e-4815-b918-977607d6172a" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/max_ent_trial3/features.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial3/features.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/max_ent_trial3/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial3/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/max_ent_trial3/max_ent_irl.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial3/max_ent_irl.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/max_ent_trial3/misc.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial3/misc.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/max_ent_trial3/robot_markov_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial3/robot_markov_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/max_ent_trial3/robot_state_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial3/robot_state_utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/max_ent_trial3/util_func.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial3/util_func.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/max_ent_pos/robot_markov_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_pos/robot_markov_model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/max_ent_pos/robot_state_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_pos/robot_state_utils.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
