@@ -39,6 +39,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         self.rewards = []
         self.features = []
         self.state_action_value = []
+        self.discount = 0
 
     def create_state_space_model_func(self):
         # Creates the state space of the robot based on the values initialized for linspace by the user
@@ -58,27 +59,31 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
                 for pos_z in [-0.001, 0, 0.001]:
                     self.action_set.append(np.array([pos_x, pos_y, pos_z]))
         # return self.action_set
-    '''
-    def get_next_state(self):
+
+    def get_next_state(self, state_val_1, state_val_2, state_val_3, action):
         # curr_state = np.array([rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z])
         # Since the state value is normalized by dividing with 2*pi, so multiply with 2*pi and add action
         # Then divide final result by 2*pi to normalize the data again
-        next_state_val = (curr_state*2*np.pi + action)/(2*np.pi)
-        return next_state_val
+        next_state_val_1 = (state_val_1 * 2 * np.pi + action[0])/(2 * np.pi)
+        next_state_val_2 = (state_val_2 * 2 * np.pi + action[1])/(2 * np.pi)
+        next_state_val_3 = (state_val_3 * 2 * np.pi + action[2])/(2 * np.pi)
 
-    def policy_iteration_func(self):
+        return next_state_val_1, next_state_val_2, next_state_val_3
+
+    def policy_iteration_func(self, action):
         # new_state_rot_par_r, new_state_rot_par_p, new_state_rot_par_y, new_state_end_pos_x, new_state_end_pos_y, \
         # new_state_end_pos_z = self.get_next_state(self.state_values, action)
-        self.model_new_end_pos_x, self.model_new_end_pos_y, self.model_new_end_pos_z = self.get_next_state()
+        self.model_new_end_pos_x, self.model_new_end_pos_y, self.model_new_end_pos_z = \
+            self.get_next_state(self.model_end_pos_x, self.model_end_pos_y, self.model_end_pos_z, action)
 
         self.model_new_index_pos_x, self.model_new_index_pos_y, self.model_new_index_pos_z = \
-            self.get_indices(new_state_values)
+            self.get_indices(self.model_new_end_pos_x, self.model_new_end_pos_y, self.model_new_end_pos_z)
 
         q = self.rewards[self.model_index_pos_x, self.model_index_pos_y, self.model_index_pos_z] + \
-            0.9*self.state_action_value[new_index_values]
-        p = np.exp(0.75*q)
+            self.discount*self.state_action_value[self.model_new_index_pos_x, self.model_new_index_pos_y, self.model_new_index_pos_z]
+        p = np.exp(q)
         return q, p
-    '''
+
     def initialize_policy_iteration_func(self, action):
         # print
         q = self.rewards[self.model_index_pos_x, self.model_index_pos_y, self.model_index_pos_z]
@@ -94,6 +99,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         self.create_state_space_model_func()
         self.create_action_set_func()
         n_actions = len(self.action_set)
+        self.discount = discount
         self.model_index_pos_x, self.model_index_pos_y, self.model_index_pos_z = self.get_indices(self.model_end_pos_x,
                                                                                                   self.model_end_pos_y,
                                                                                                   self.model_end_pos_z)
@@ -109,12 +115,16 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         for i in range(0, n_policy_iter):
             action_value = []
             policy = []
-            # print "Policy Iteration:", i
+            print "Policy Iteration:", i
             # start_time = t.time()
 
                 # Run it on the first try to initialize the value of function of all the states to a value
                 # func = self.initialize_policy_iteration_func(self.model_index_pos_x, self.model_index_pos_y, self.model_index_pos_z)
-            func = self.initialize_policy_iteration_func
+            if i == 0:
+                func = self.initialize_policy_iteration_func
+            else:
+                func = self.policy_iteration_func
+            # The map function was inherited from threadpoolexecutor function which is why its being called as self.map
             for q, p in self.map(func, self.action_set):
                 action_value.append(q)
                 policy.append(p)
@@ -148,9 +158,6 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         # model_pos_x_val (-0.009, -0.003)
         # model_pos_y_val (0.003, 0.007)
         # model_pos_z_val (-0.014, -0.008)
-        # model_rot_r_val (-0.5, 0.5)
-        # model_rot_p_val (-0.234, -0.155)
-        # model_rot_y_val (0.28, 0.443)
         index_end_pos_x = (index_end_pos_x * 10 + 0.09) / float(0.006)
         index_end_pos_y = (index_end_pos_y * 10 + 0.09) / float(0.006)
         index_end_pos_z = (index_end_pos_z * 10 + 0.09) / float(0.006)
