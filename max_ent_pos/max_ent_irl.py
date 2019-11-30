@@ -13,7 +13,7 @@ class MaxEntIRL(RobotStateUtils):
                              n_trajectories, epochs, learning_rate, n_policy_iter, alpha):
         # Finds the total number of states and dimensions of the list of features array
         n_states, d_states = complete_features_array.shape
-        # print "c feature", complete_features_array.shape
+        print "complete feature", complete_features_array.shape
         # print "length of action set", len(action_set)
         # Initialize alpha with random weights based on the dimensionality of the feature space
         # alpha = rn.uniform(size=(d_states,))
@@ -25,12 +25,16 @@ class MaxEntIRL(RobotStateUtils):
             # print("i: {}".format(i))
             # Multiplies the features with randomized alpha value, size of output Ex: dot(449*2, 2x1)
             # Not required: self.reward = complete_features_array.dot(alpha)
-            expected_svf, policy, state_space_model_features = self.find_expected_svf(discount, n_trajectories, n_policy_iter, alpha)
-            grad = feature_expectations - state_space_model_features.T.dot(expected_svf)
+            expected_svf, policy = self.find_expected_svf(discount, n_trajectories, n_policy_iter, alpha)
+            print "shape of features and svf is ", expected_svf.shape
+            # print "features is ", state_space_model_features
+            # grad = feature_expectations - state_space_model_features.dot(expected_svf)
+            print "---shapes ----- \n", feature_expectations.reshape(2, 1).shape, expected_svf.reshape(2, 1).shape
+            grad = feature_expectations.reshape(2, 1) - expected_svf.reshape(2, 1)
             #
-            alpha += learning_rate * grad
+            alpha += learning_rate * np.transpose(grad)
 
-        return complete_features_array.dot(alpha).reshape((n_states,))
+        return complete_features_array.dot(alpha.reshape(2, 1))
 
         # return self.reward
 
@@ -71,7 +75,11 @@ class MaxEntIRL(RobotStateUtils):
             mu_last = s
             mu = mu + mu_last
         mu = mu / self.trajectory_length
-        return mu_last, policy, state_space_model_features
+        # mu = mu / n_time
+        state_visitation = mu_last * state_space_model_features
+        print "State Visitation Frequency calculated."
+        return np.sum(state_visitation.reshape(2, 11 * 11 * 11), axis=1), policy
+        # return mu_last, policy, state_space_model_features
         # state_visitation = mu_last * self.f
         # print "State Visitation Frequency calculated."
         # return np.sum(state_visitation.reshape(2, 11 * 11 * 11), axis=1), policy

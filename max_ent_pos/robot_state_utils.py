@@ -108,6 +108,8 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
 
         self.rewards, self.features = robot_mdp.reward_func(self.model_end_pos_x, self.model_end_pos_y,
                                                             self.model_end_pos_z, alpha)
+        self.features_arr = robot_mdp.features_func(self.model_end_pos_x, self.model_end_pos_y,
+                                                            self.model_end_pos_z)
         # print "rewards is ", self.rewards.shape
         # print "reward 0 ", self.rewards[0][3][8]
         # return 0
