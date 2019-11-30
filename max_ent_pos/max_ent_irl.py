@@ -34,7 +34,7 @@ class MaxEntIRL(RobotStateUtils):
             #
             alpha += learning_rate * np.transpose(grad)
 
-        return complete_features_array.dot(alpha.reshape(2, 1))
+        return complete_features_array.dot(alpha.reshape(2, 1)), alpha
 
         # return self.reward
 
