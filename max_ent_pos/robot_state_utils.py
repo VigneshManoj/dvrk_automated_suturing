@@ -49,8 +49,8 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
                                                                                        self.model_limits_pos_z_val)
         print "State space has been created"
 
-        # return self.model_rot_par_r, self.model_rot_par_p, self.model_rot_par_y, \
-        #       self.model_end_pos_x, self.model_end_pos_y, self.model_end_pos_z
+    def return_model_state_values(self):
+        return self.model_end_pos_x, self.model_end_pos_y, self.model_end_pos_z, self.model_index_pos_x, self.model_index_pos_y, self.model_index_pos_z
 
     def create_action_set_func(self):
         # Creates the action space required for the robot. It is defined by the user beforehand itself
@@ -58,7 +58,9 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
             for pos_y in [-0.001, 0, 0.001]:
                 for pos_z in [-0.001, 0, 0.001]:
                     self.action_set.append(np.array([pos_x, pos_y, pos_z]))
-        # return self.action_set
+
+    def return_action_set(self):
+        return self.action_set
 
     def get_next_state(self, state_val_1, state_val_2, state_val_3, action):
         # curr_state = np.array([rot_par_r, rot_par_p, rot_par_y, end_pos_x, end_pos_y, end_pos_z])
@@ -145,8 +147,8 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
             print "Evaluating Policy..."
             policy = policy / sum(policy)
             self.state_action_value = sum(policy * action_value)
-            print "state action value ", self.state_action_value
-        return policy
+            # print "state action value ", self.state_action_value
+        return policy, self.features
 
     def get_indices(self, model_end_pos_x, model_end_pos_y, model_end_pos_z):
         index_end_pos_x = model_end_pos_x
@@ -163,11 +165,12 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         index_end_pos_z = (index_end_pos_z * 10 + 0.09) / float(0.006)
 
         return index_end_pos_x.astype(int), index_end_pos_y.astype(int), index_end_pos_z.astype(int)
-
+'''
 def main(alpha, discount, n_policy_iter):
     # Creates an object for using the RobotMarkovModel class
     utils = RobotStateUtils()
     policy = utils.calculate_optimal_policy_func(alpha, discount, n_policy_iter)
+    print "policy is ", policy.shape
 
 if __name__ == '__main__':
     # The different kind of trajectories present in the user study
@@ -177,3 +180,4 @@ if __name__ == '__main__':
     n_policy_iter = 3
     discount = 0.9
     main(weights, discount, n_policy_iter)
+'''

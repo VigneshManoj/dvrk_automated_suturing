@@ -95,8 +95,8 @@ class RobotMarkovModel:
         features_arr = []
         for n in range(0, len(features)):
             features_arr.append(features[n](end_pos_x, end_pos_y, end_pos_z))
-            print "alpha size", alpha[0, n].shape
-            print "features size ", features_arr[n].shape
+            # print "alpha size", alpha[0, n].shape
+            # print "features size ", features_arr[n].shape
             reward = reward + alpha[0, n]*features_arr[n]
         # Created the feature function assuming everything has importance, so therefore added each parameter value
         return reward, features_arr
