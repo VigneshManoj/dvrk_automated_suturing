@@ -15,9 +15,9 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         # Creates the model state space based on the maximum and minimum values of the dataset provided by the user
         # It is for created a 3D cube with 6 values specifying each cube node
         # The value 11 etc decides how sparse the mesh size of the cube would be
-        self.model_limits_pos_x_val = np.linspace(-0.009, -0.003, 11, dtype='float16')
-        self.model_limits_pos_y_val = np.linspace(-0.009, -0.003, 11, dtype='float16')
-        self.model_limits_pos_z_val = np.linspace(-0.009, -0.003, 11, dtype='float16')
+        self.model_limits_pos_x_val = np.linspace(-0.009, -0.003, 11, dtype='float32')
+        self.model_limits_pos_y_val = np.linspace(-0.009, -0.003, 11, dtype='float32')
+        self.model_limits_pos_z_val = np.linspace(-0.009, -0.003, 11, dtype='float32')
         # There are 6 parameters defining a state value of the robot, RPY and XYZ
         self.n_states = 3
         # The created model state values
