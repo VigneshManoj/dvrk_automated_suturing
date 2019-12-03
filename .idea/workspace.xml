@@ -3,8 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="71a93876-613e-4815-b918-977607d6172a" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/max_ent_pos/max_ent_irl.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_pos/max_ent_irl.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/max_ent_pos/robot_state_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_pos/robot_state_utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/.~lock.trajectory_data_4_1000hz.csv#" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/trajectory_data_4_1000hz.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/trajectory_data_4_1000hz.csv" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -27,7 +27,7 @@
     <ConfirmationsSetting value="1" id="Add" />
   </component>
   <component name="PropertiesComponent">
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../Inverse-Reinforcement-Learning" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/validation_max_ent_pos" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RunDashboard">
