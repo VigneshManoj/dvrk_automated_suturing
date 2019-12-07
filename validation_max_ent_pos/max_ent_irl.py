@@ -2,6 +2,7 @@ import numpy as np
 import numpy.random as rn
 import math
 from robot_state_utils import RobotStateUtils
+from policy_iteration import find_policy
 
 class MaxEntIRL(RobotStateUtils):
     def __init__(self, trajectory_length):
@@ -25,7 +26,7 @@ class MaxEntIRL(RobotStateUtils):
             # print("i: {}".format(i))
             # Multiplies the features with randomized alpha value, size of output Ex: dot(449*2, 2x1)
             # Not required: self.reward = complete_features_array.dot(alpha)
-            expected_svf, policy, n_features = self.find_expected_svf(discount, n_trajectories, n_policy_iter, alpha)
+            expected_svf, policy, n_features = self.find_expected_svf(discount, n_trajectories, n_policy_iter, alpha, n_states)
             # print "shape of features and svf is ", expected_svf
             # print "features is ", state_space_model_features
             # grad = feature_expectations - state_space_model_features.dot(expected_svf)
@@ -47,7 +48,7 @@ class MaxEntIRL(RobotStateUtils):
         # Return the expert data feature expectations
         return feature_expectations
 
-    def find_expected_svf(self, discount, n_trajectories, n_policy_iter, alpha):
+    def find_expected_svf(self, discount, n_trajectories, n_policy_iter, alpha, n_states):
         # Trajectory length is calculated as follows:
         # Trajectory is basically list of all Traj1 Traj2 Traj3 Traj4 of user 1 and
         # similarly  Traj1 Traj2 Traj3 Traj4 for user 2
@@ -55,8 +56,9 @@ class MaxEntIRL(RobotStateUtils):
         # Outisde trajectory value would be the different trajectories collected from user (say trial1 trial2 etc)
         # So in this case currently, it is 1 in our case
         robot_state_utils = RobotStateUtils()
+        rewards, state_space_model_features, n_features = robot_state_utils.calculate_optimal_policy_func(alpha, discount)
         # policy = find_policy(n_states, r, n_actions, discount, transition_probability)
-        policy, state_space_model_features, n_features = robot_state_utils.calculate_optimal_policy_func(alpha, discount, n_policy_iter)
+        policy = find_policy(n_states, 8, rewards, discount)
         # print "state space model features ", state_space_model_features
         model_state_val_x, model_state_val_y, model_state_val_z, index_val_x, index_val_y, index_val_z = robot_state_utils.return_model_state_values()
         mu = np.exp(-model_state_val_x ** 2) * np.exp(-model_state_val_y ** 2) * np.exp(-model_state_val_z ** 2)

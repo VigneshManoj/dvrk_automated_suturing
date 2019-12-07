@@ -95,7 +95,27 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         p = np.exp(q)
         return q, p
 
-    def calculate_optimal_policy_func(self, alpha, discount, n_policy_iter):
+    def reward_func(self, end_pos_x, end_pos_y, end_pos_z, alpha):
+        # Creates list of all the features being considered
+        features = [self.features_array_prim_func]
+        reward = 0
+        features_arr = []
+        for n in range(0, len(features)):
+            features_arr.append(features[n](end_pos_x, end_pos_y, end_pos_z))
+            # print "alpha size", alpha[0, n].shape
+            # print "features size ", features_arr[n].shape
+            reward = reward + alpha[0, n]*features_arr[n]
+            print "reward is", reward
+        # Created the feature function assuming everything has importance, so therefore added each parameter value
+        return reward, np.array([features_arr]), len(features)
+
+    # Created feature set1 which basically takes the exponential of sum of individually squared value
+    def features_array_prim_func(self, end_pos_x, end_pos_y, end_pos_z):
+        feature_1 = np.exp(-(end_pos_x**2 + end_pos_y**2 + end_pos_z**2))
+        return feature_1
+
+
+    def calculate_optimal_policy_func(self, alpha, discount):
         # Creates an object for using the RobotMarkovModel class
         robot_mdp = RobotMarkovModel()
         self.create_state_space_model_func()
@@ -106,14 +126,15 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
                                                                                                   self.model_end_pos_y,
                                                                                                   self.model_end_pos_z)
 
-        self.rewards, self.features, n_features = robot_mdp.reward_func(self.model_end_pos_x, self.model_end_pos_y,
+        self.rewards, self.features, n_features = self.reward_func(self.model_end_pos_x, self.model_end_pos_y,
                                                             self.model_end_pos_z, alpha)
-        self.features_arr = robot_mdp.features_func(self.model_end_pos_x, self.model_end_pos_y,
-                                                            self.model_end_pos_z)
+        # self.features_arr = robot_mdp.features_func(self.model_end_pos_x, self.model_end_pos_y,
+        #                                                     self.model_end_pos_z)
         # print "rewards is ", self.rewards.shape
         # print "reward 0 ", self.rewards[0][3][8]
         # return 0
-
+        return self.rewards, self.features, n_features
+    '''
         ### Note: look into trying to make this a Numpy array
         policy = []
         for i in range(0, n_policy_iter):
@@ -150,7 +171,8 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
             policy = policy / sum(policy)
             self.state_action_value = sum(policy * action_value)
             # print "state action value ", self.state_action_value
-        return policy, self.features, n_features
+        return self.rewards
+    '''
 
     def get_indices(self, model_end_pos_x, model_end_pos_y, model_end_pos_z):
         index_end_pos_x = model_end_pos_x

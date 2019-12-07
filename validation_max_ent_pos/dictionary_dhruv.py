@@ -18,7 +18,7 @@ Z = {round(ival, 3): int(i) for i, ival in enumerate(ls)}
 # PH = {round(ival, 3): int(i) for i, ival in enumerate(ls)}
 # SC = {round(ival, 3): int(i) for i, ival in enumerate(ls)}
 
-States = {i: (0, 0, 0, 0, 0, 0) for i in range(pow(len(ls), 6))}
+States = {i: (0, 0, 0) for i in range(pow(len(ls), 3))}
 for i, ival in enumerate(ls):
   for j, jval in enumerate(ls):
     for k, kval in enumerate(ls):
