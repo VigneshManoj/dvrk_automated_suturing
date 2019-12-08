@@ -91,8 +91,23 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
 
         return resulting_state
 
-    def calc_value_func(self, n_states, n_actions, reward, discount, threshold ):
-        return 5
+    def calc_value_func(self, reward, discount, threshold):
+        v = np.zeros(len(self.states))
+        '''
+        diff = float("inf")
+        while diff > threshold:
+            diff = 0
+            for s in range(n_states):
+                max_v = float("-inf")
+                for a in range(n_actions):
+                    max_v = max(max_v, reward + discount * v)
+
+                new_diff = abs(v[s] - max_v)
+                if new_diff > diff:
+                    diff = new_diff
+                v[s] = max_v
+        '''
+        return v
 
     def find_policy(self, n_states, n_actions, reward, discount,
                     threshold=1e-2, v=None):
@@ -161,7 +176,7 @@ if __name__ == '__main__':
     ele = obj_state_util.create_state_space_model_func()
     # print ele
     states = obj_state_util.create_state_space_model_func()
-    # print states[33]
+    print len(states)
     action = obj_state_util.create_action_set_func()
     row_column = obj_state_util.get_state_val_index([-0.1, 0.1, 1.0])
     # print row_column
@@ -179,6 +194,8 @@ if __name__ == '__main__':
     reward, features, n_features = obj_mdp.reward_func(r[0], r[1], r[2], weights)
     # print reward
     # print features
+    valuefunc = obj_state_util.calc_value_func(1, 2, 3)
+    print len(valuefunc)
 
 
 
