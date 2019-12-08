@@ -15,6 +15,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         # It is for created a 3D cube with 3 values specifying each cube node
         # The value 11 etc decides how sparse the mesh size of the cube would be
         self.grid_size = grid_size
+        self.grid = np.zeros((self.grid_size, self.grid_size, self.grid_size))
         self.lin_space_limits = np.linspace(0, 1, self.grid_size, dtype='float32')
         # Creates a dictionary for storing the state values
         self.states = {}
@@ -48,9 +49,9 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
 
     def create_action_set_func(self):
         # Creates the action space required for the robot. It is defined by the user beforehand itself
-        for pos_x in [-0.001, 0, 0.001]:
-            for pos_y in [-0.001, 0, 0.001]:
-                for pos_z in [-0.001, 0, 0.001]:
+        for pos_x in [-0.1, 0, 0.1]:
+            for pos_y in [-0.1, 0, 0.1]:
+                for pos_z in [-0.1, 0, 0.1]:
                     self.action_set.append([pos_x, pos_y, pos_z])
         # Assigning the dictionary keys
         for i in range(len(self.action_set)):
@@ -58,16 +59,60 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
 
         return self.action_space
 
-    def getRowAndColumn(self):
-        # Since everything is saved in a linear flattened form
-        # Provides the z, y, x value of the current position based on the integer location value provided
-        z = round(self.current_pos % self.grid_size)
-        y = round((self.current_pos / self.grid_size) % self.grid_size)
-        # x = round((self.current_pos-(self.current_pos // self.grid_size)) % self.grid_size)
-        x = round((self.current_pos / (self.grid_size * self.grid_size)) % self.grid_size)
-        # Returns the actual value by dividing it by 10 (which is the scale of integer position and state values)
+    # def get_model_indices(self, state_val):
+    #     # Since everything is saved in a linear flattened form
+    #     # Provides the z, y, x value of the current position based on the integer location value provided
+    #     z = round(state_val % self.grid_size)
+    #     y = round((state_val / self.grid_size) % self.grid_size)
+    #     # x = round((self.current_pos-(self.current_pos // self.grid_size)) % self.grid_size)
+    #     x = round((state_val / (self.grid_size * self.grid_size)) % self.grid_size)
+    #     # Returns the actual value by dividing it by 10 (which is the scale of integer position and state values)
+    #
+    #     return [x/float(10), y/float(10), z/float(10)]
 
-        return [x/float(10), y/float(10), z/float(10)]
+
+    def get_model_indices(self, state_val):
+        x = int(state_val[0]) * pow(self.grid_size, 2) + int(state_val[1]) * pow(self.grid_size, 1) + int(state_val[2])
+        return x*10
+
+    def off_grid_move(self, new_state, old_state):
+        # if we move into a row not in the grid
+        if new_state not in self.states:
+            return True
+        # if we're trying to wrap around to next row
+        elif old_state % self.grid_size == 0 and new_state % self.grid_size == self.grid_size - 1:
+            return True
+        elif old_state % self.grid_size == self.grid_size - 1 and new_state % self.grid_size == 0:
+            return True
+        else:
+            return False
+
+    def reset(self):
+        self.current_pos = np.random.randint(0, len(self.states))
+        self.grid = np.zeros((self.grid_size, self.grid_size, self.grid_size))
+        return self.current_pos
+
+    def step(self, curr_state, action):
+        resulting_state = []
+        print xyz_list
+        print self.action_space[action]
+        for i in range(0, len(xyz_list)):
+            resulting_state.append(xyz_list[i] + self.action_space[action][i])
+
+        return resulting_state
+    '''
+        reward = self.reward_func(curr_state, resulting_state)
+        if not self.off_grid_move(resulting_state, self.current_pos):
+            self.set_state(resulting_state)
+            return resulting_state, reward, None
+        else:
+            return self.current_pos, reward, None
+
+    def reward_func(self, curr_state, resulting_state):
+        next_x, next_y, next_z = self.get_model_indices(resulting_state)
+        x, y, z = self.get_model_indices(resulting_state)
+
+    '''
 
 if __name__ == '__main__':
     # Robot Object called
@@ -76,10 +121,13 @@ if __name__ == '__main__':
     ele = obj.create_state_space_model_func()
     # print ele
     states = obj.create_state_space_model_func()
-    print states[1000]
-    # print len(states)
+    # print states[33]
     action = obj.create_action_set_func()
-    # print len(action)
-    # print len(obj.possible_actions)
-    row_column = obj.getRowAndColumn()
+    row_column = obj.get_model_indices([1.0, 0, 1.0])
     print row_column
+    print states[1220]
+    state = 32
+    action_val = 1
+    next_state = obj.step(state, action_val)
+    print next_state
+
