@@ -71,9 +71,10 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
     #     return [x/float(10), y/float(10), z/float(10)]
 
 
-    def get_model_indices(self, state_val):
-        x = int(state_val[0]) * pow(self.grid_size, 2) + int(state_val[1]) * pow(self.grid_size, 1) + int(state_val[2])
-        return x*10
+    def get_state_val_index(self, state_val):
+        index_val = int(state_val[0]) * pow(self.grid_size, 2) + int(state_val[1]) * pow(self.grid_size, 1) + \
+                    int(state_val[2])
+        return index_val*(self.grid_size-1)
 
     def off_grid_move(self, new_state, old_state):
         # if we move into a row not in the grid
@@ -94,10 +95,11 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
 
     def step(self, curr_state, action):
         resulting_state = []
-        print xyz_list
-        print self.action_space[action]
-        for i in range(0, len(xyz_list)):
-            resulting_state.append(xyz_list[i] + self.action_space[action][i])
+        print "current state", self.states[curr_state]
+        print "action taken", self.action_space[action]
+
+        for i in range(0, self.n_states):
+            resulting_state.append(self.states[curr_state][i] + self.action_space[action][i])
 
         return resulting_state
     '''
@@ -123,11 +125,13 @@ if __name__ == '__main__':
     states = obj.create_state_space_model_func()
     # print states[33]
     action = obj.create_action_set_func()
-    row_column = obj.get_model_indices([1.0, 0, 1.0])
+    row_column = obj.get_state_val_index([-0.1, 0.1, 1.0])
     print row_column
-    print states[1220]
-    state = 32
+    # print states[1220]
+    state_check = 32
     action_val = 1
-    next_state = obj.step(state, action_val)
-    print next_state
+    print "Current state index ", state_check
+    next_state = obj.step(state_check, action_val)
+    print "resulting state", next_state
+    print "Index of resulting state", obj.get_state_val_index(next_state)
 
