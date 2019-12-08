@@ -31,7 +31,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         self.features = []
         self.state_action_value = []
         self.discount = 0
-        self.current_pos = 50
+        self.current_pos = 1000
 
     def create_state_space_model_func(self):
         # Creates the state space of the robot based on the values initialized for linspace by the user
@@ -62,10 +62,12 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         # Since everything is saved in a linear flattened form
         # Provides the z, y, x value of the current position based on the integer location value provided
         z = round(self.current_pos % self.grid_size)
-        y = round(self.current_pos // self.grid_size)
-        x = round((self.current_pos-(self.current_pos % self.grid_size)) % self.grid_size)
+        y = round((self.current_pos / self.grid_size) % self.grid_size)
+        # x = round((self.current_pos-(self.current_pos // self.grid_size)) % self.grid_size)
+        x = round((self.current_pos / (self.grid_size * self.grid_size)) % self.grid_size)
         # Returns the actual value by dividing it by 10 (which is the scale of integer position and state values)
-        return x/float(10), y/float(10), z/float(10)
+
+        return [x/float(10), y/float(10), z/float(10)]
 
 if __name__ == '__main__':
     # Robot Object called
@@ -74,7 +76,7 @@ if __name__ == '__main__':
     ele = obj.create_state_space_model_func()
     # print ele
     states = obj.create_state_space_model_func()
-    print states[50]
+    print states[1000]
     # print len(states)
     action = obj.create_action_set_func()
     # print len(action)
