@@ -59,18 +59,6 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
 
         return self.action_space
 
-    # def get_model_indices(self, state_val):
-    #     # Since everything is saved in a linear flattened form
-    #     # Provides the z, y, x value of the current position based on the integer location value provided
-    #     z = round(state_val % self.grid_size)
-    #     y = round((state_val / self.grid_size) % self.grid_size)
-    #     # x = round((self.current_pos-(self.current_pos // self.grid_size)) % self.grid_size)
-    #     x = round((state_val / (self.grid_size * self.grid_size)) % self.grid_size)
-    #     # Returns the actual value by dividing it by 10 (which is the scale of integer position and state values)
-    #
-    #     return [x/float(10), y/float(10), z/float(10)]
-
-
     def get_state_val_index(self, state_val):
         index_val = int(state_val[0]) * pow(self.grid_size, 2) + int(state_val[1]) * pow(self.grid_size, 1) + \
                     int(state_val[2])
@@ -102,36 +90,125 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
             resulting_state.append(self.states[curr_state][i] + self.action_space[action][i])
 
         return resulting_state
-    '''
-        reward = self.reward_func(curr_state, resulting_state)
-        if not self.off_grid_move(resulting_state, self.current_pos):
-            self.set_state(resulting_state)
-            return resulting_state, reward, None
-        else:
-            return self.current_pos, reward, None
 
-    def reward_func(self, curr_state, resulting_state):
-        next_x, next_y, next_z = self.get_model_indices(resulting_state)
-        x, y, z = self.get_model_indices(resulting_state)
+    def calc_value_func(self, n_states, n_actions, reward, discount, threshold ):
+        return 5
+
+    def find_policy(self, n_states, n_actions, reward, discount,
+                    threshold=1e-2, v=None):
+
+        if v is None:
+            v = self.calc_value_func(n_states, n_actions, reward,
+                              discount, threshold)
+        def policy(s):
+            return max(range(n_actions),
+                       key=lambda a: sum((reward[k] + discount * v[k]) for k in range(n_states)))
+
+        policy = np.array([policy(s) for s in range(n_states)])
+        return policy
 
     '''
+    def generate_trajectories(self, n_trajectories, trajectory_length, policy, random_start=True):
+
+        trajectories = []
+        for _ in range(n_trajectories):
+            if random_start:
+                sx, sy, sz = rn.randint(self.grid_size), rn.randint(self.grid_size), rn.randint(self.grid_size)
+                print "Randomly assigned states are ", sx, sy, sz
+
+            else:
+                sx, sy, sz = 0, 0, 0
+
+            trajectory = []
+            for _ in range(trajectory_length):
+                # Follow the given policy.
+                print "states are ", sx, sy, sz
+                print "Policy ", self.get_state_val_index([sx, sy, sz])
+                print "Ended "
+                action = self.actions[policy(self.get_state_val_index([sx, sy, sz]))]
+
+                if (0 <= sx + action[0] < self.grid_size and 0 <= sy + action[1] < self.grid_size
+                        and 0 <= sz + action[2] < self.grid_size):
+                    next_sx = sx + action[0]
+                    next_sy = sy + action[1]
+                    next_sz = sz + action[2]
+                else:
+                    next_sx = sx
+                    next_sy = sy
+                    next_sz = sz
+
+                state_int = self.point_to_int((sx, sy, sz))
+                # print "action is ", action
+                action_int = self.actions.index(action)
+                next_state_int = self.point_to_int((next_sx, next_sy, next_sz))
+                reward = self.reward(next_state_int)
+                trajectory.append((state_int, action_int, reward))
+
+                sx = next_sx
+                sy = next_sy
+                sz = next_sz
+
+            trajectories.append(trajectory)
+
+        return np.array(trajectories)
+    '''
+
 
 if __name__ == '__main__':
     # Robot Object called
     # Pass the gridsize required
-    obj = RobotStateUtils(11)
-    ele = obj.create_state_space_model_func()
+    obj_state_util = RobotStateUtils(11)
+    ele = obj_state_util.create_state_space_model_func()
     # print ele
-    states = obj.create_state_space_model_func()
+    states = obj_state_util.create_state_space_model_func()
     # print states[33]
-    action = obj.create_action_set_func()
-    row_column = obj.get_state_val_index([-0.1, 0.1, 1.0])
-    print row_column
+    action = obj_state_util.create_action_set_func()
+    row_column = obj_state_util.get_state_val_index([-0.1, 0.1, 1.0])
+    # print row_column
     # print states[1220]
     state_check = 32
     action_val = 1
-    print "Current state index ", state_check
-    next_state = obj.step(state_check, action_val)
-    print "resulting state", next_state
-    print "Index of resulting state", obj.get_state_val_index(next_state)
+    # print "Current state index ", state_check
+    r = obj_state_util.step(state_check, action_val)
+    # print r
+    obj_mdp = RobotMarkovModel()
+    # rand_weights = np.random.rand(1, 3)
+    # print rand_weights.shape
+    weights = np.array([[1, 1, 0]])
+    # print weights.shape
+    reward, features, n_features = obj_mdp.reward_func(r[0], r[1], r[2], weights)
+    # print reward
+    # print features
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # def get_model_indices(self, state_val):
+    #     # Since everything is saved in a linear flattened form
+    #     # Provides the z, y, x value of the current position based on the integer location value provided
+    #     z = round(state_val % self.grid_size)
+    #     y = round((state_val / self.grid_size) % self.grid_size)
+    #     # x = round((self.current_pos-(self.current_pos // self.grid_size)) % self.grid_size)
+    #     x = round((state_val / (self.grid_size * self.grid_size)) % self.grid_size)
+    #     # Returns the actual value by dividing it by 10 (which is the scale of integer position and state values)
+    #
+    #     return [x/float(10), y/float(10), z/float(10)]
+
 
