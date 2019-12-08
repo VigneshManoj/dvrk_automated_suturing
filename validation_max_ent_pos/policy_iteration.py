@@ -17,14 +17,15 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         # The value 11 etc decides how sparse the mesh size of the cube would be
         self.lin_space_limits = np.linspace(0, 1, 11, dtype='float32')
         self.states = {}
-        self.actionSpace = {}
+        self.action_space = {}
+        self.action_set = []
+        self.state_set = []
         # There are 6 parameters defining a state value of the robot, RPY and XYZ
         self.n_states = 3
         # The created model state values
         self.model_end_pos_x = []
         self.model_end_pos_y = []
         self.model_end_pos_z = []
-        self.action_set = []
         # The created model values index positions
         self.model_index_pos_x = []
         self.model_index_pos_y = []
@@ -45,15 +46,13 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         # Creates the state space of the robot based on the values initialized for linspace by the user
         # print "Creating State space "
 
-        for i, ival in enumerate(self.lin_space_limits):
-            for j, jval in enumerate(self.lin_space_limits):
-                for k, kval in enumerate(self.lin_space_limits):
-                    ele = {
-                            (int(i), int(j), int(k)): (round(ival, 3), round(jval, 3), round(kval, 3))
-                           }
-                    print ele
-                    self.states.update(ele)
-        # print "State space has been created"
+        for i_val in self.lin_space_limits:
+            for j_val in self.lin_space_limits:
+                for k_val in self.lin_space_limits:
+                    self.state_set.append([i_val, j_val, k_val])
+
+        for i in range(len(self.state_set)):
+            self.states[i] = self.state_set[i]
         return self.states
 
     # def create_action_space(self):
@@ -71,16 +70,17 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
                 for pos_z in [-0.001, 0, 0.001]:
                     self.action_set.append([pos_x, pos_y, pos_z])
         for i in range(len(self.action_set)):
-            self.actionSpace[i] = self.action_set[i]
-        return self.actionSpace
+            self.action_space[i] = self.action_set[i]
 
-    def return_action_set(self):
-        return self.action_set
+        return self.action_space
 
 
 if __name__ == '__main__':
     obj = RobotStateUtils()
     ele = obj.create_state_space_model_func()
     # print ele
+    states = obj.create_state_space_model_func()
+     #print states
+    # print len(states)
     action = obj.create_action_set_func()
-    print action
+    # print action
