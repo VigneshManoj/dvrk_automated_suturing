@@ -97,7 +97,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
 
         return abs(i[0] - k[0]) + abs(i[1] - k[1]) + abs(i[2] - k[2]) <= 1
 
-    def _transition_probability(self, i, j, k):
+    def transition_probability(self, i, j, k):
 
         si, sj, sk = self.states[i]
         ai, aj, ak = self.action_space[j]
@@ -155,11 +155,11 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
                 print "states is", s
                 max_v = float("-inf")
                 for a in range(n_actions):
-                    tp = np.dstack([a]*self.grid_size)
+
                     # print "action is ", a
                      #print "max v is ", max_v
                     # print "reward + vdiscount ", tp.flatten().shape, reward.shape, v.shape, discount
-                    max_v = max(max_v, np.dot(tp, reward + discount * v))
+                    max_v = max(max_v, np.dot(self.transition_probability(s, a, s1), reward + discount * v) for s1 in range(n_states))
 
                 new_diff = abs(v[s] - max_v)
                 if new_diff > diff:
