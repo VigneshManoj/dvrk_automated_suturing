@@ -7,7 +7,7 @@ import numpy.random as rn
 
 
 class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
-    def __init__(self, grid_size):
+    def __init__(self, grid_size, weights):
         super(RobotStateUtils, self).__init__(max_workers=8)
         # Model here means the 3D cube being created
         # linspace limit values: limit_values_pos = [[-0.009, -0.003], [0.003, 007], [-0.014, -0.008]]
@@ -30,6 +30,8 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         self.state_action_value = []
         self.discount = 0
         self.current_pos = 1000
+        self.terminal_state_val = 100
+        self.weights = weights
 
     def create_state_space_model_func(self):
         # Creates the state space of the robot based on the values initialized for linspace by the user
@@ -66,9 +68,17 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
                     int(state_val[2])
         return index_val*(self.grid_size-1)
 
+    def is_terminal_state(self, state):
+        if state == self.terminal_state_val:
+            return 1
+        else:
+            return 0
+
     def off_grid_move(self, new_state, old_state):
         # if we move into a row not in the grid
-        if new_state not in self.states:
+        # print self.states.values
+        # print new_state
+        if new_state not in self.states.values():
             return True
         # if we're trying to wrap around to next row
         elif old_state % self.grid_size == 0 and new_state % self.grid_size == self.grid_size - 1:
@@ -77,6 +87,35 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
             return True
         else:
             return False
+
+    def reward_func(self, end_pos_x, end_pos_y, end_pos_z, alpha):
+        # Creates list of all the features being considered
+        features = [self.features_array_prim_func, self.features_array_sec_func, self.features_array_tert_func]
+        reward = 0
+        features_arr = []
+        for n in range(0, len(features)):
+            features_arr.append(features[n](end_pos_x, end_pos_y, end_pos_z))
+            # print "alpha size", alpha[0, n].shape
+            # print "features size ", features_arr[n].shape
+            reward = reward + alpha[0, n]*features_arr[n]
+        # Created the feature function assuming everything has importance, so therefore added each parameter value
+        return reward, np.array([features_arr]), len(features)
+
+    # Created feature set1 which basically takes the exponential of sum of individually squared value
+    def features_array_prim_func(self, end_pos_x, end_pos_y, end_pos_z):
+        feature_1 = np.exp(-(end_pos_x**2))
+        return feature_1
+
+    # Created feature set2 which basically takes the exponential of sum of individually squared value divided by
+    # the variance value
+    def features_array_sec_func(self, end_pos_x, end_pos_y, end_pos_z):
+        feature_2 = np.exp(-(end_pos_y**2))
+        # print f2
+        return feature_2
+
+    def features_array_tert_func(self, end_pos_x, end_pos_y, end_pos_z):
+        feature_3 = np.exp(-(end_pos_z**2))
+        return feature_3
 
     def reset(self):
         self.current_pos = np.random.randint(0, len(self.states))
@@ -91,8 +130,121 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         for i in range(0, self.n_states):
             resulting_state.append(self.states[curr_state][i] + self.action_space[action][i])
 
-        return resulting_state
+        # return resulting_state
+        reward = self.reward_func(resulting_state[0], resulting_state[1], resulting_state[2], self.weights)
+        if not self.off_grid_move(resulting_state, self.states[curr_state]):
+            return resulting_state, reward, self.is_terminal_state(resulting_state), None
+        else:
+            return self.states[curr_state], reward, \
+                   self.is_terminal_state(self.states[curr_state]), None
 
+
+    def action_space_sample(self):
+        return np.random.choice(self.action_space)
+
+def max_action(Q, state_values, action_values):
+        values = np.array([Q[state_values, a] for a in action_values])
+        action = np.argmax(values)
+        return action_values[action]
+
+def q_learning(state_space, action_space, env_obj, alpha, gamma, epsilon):
+
+    Q = {}
+    for state in state_space:
+        for action in action_space:
+            Q[state, action] = 0
+
+    numGames = 50000
+    totalRewards = np.zeros(numGames)
+    for i in range(numGames):
+        if i % 5000 == 0:
+            print('starting game ', i)
+        done = False
+        epRewards = 0
+        observation = env_obj.reset()
+        while not done:
+            rand = np.random.random()
+            action = max_action(Q, observation, action_space) if rand < (1 - epsilon) \
+                else env_obj.action_space_sample
+            observation_, reward, done, info = env_obj.step(observation, action)
+            epRewards += reward
+
+            action_ = max_action(Q, observation_, action_space)
+            Q[observation, action] = Q[observation, action] + alpha * (reward + \
+                                                                       gamma * Q[observation_, action_] - Q[
+                                                                           observation, action])
+            observation = observation_
+        if epsilon - 2 / numGames > 0:
+            epsilon -= 2 / numGames
+        else:
+            epsilon = 0
+        totalRewards[i] = epRewards
+        return totalRewards
+
+
+if __name__ == '__main__':
+    # Robot Object called
+    # Pass the gridsize required
+    weights = np.array([[1, 1, 0]])
+    # term_state = np.random.randint(0, grid_size ** 3)]
+    obj_state_util = RobotStateUtils(11, weights)
+    states = obj_state_util.create_state_space_model_func()
+    # print len(states)
+    action = obj_state_util.create_action_set_func()
+    row_column = obj_state_util.get_state_val_index([-0.1, 0.1, 1.0])
+    # print row_column
+    # print sorted(states.keys())
+    # print sorted(states.values())
+    state_check = 32
+    action_val = 1
+    # print "Current state index ", state_check
+    r = obj_state_util.step(state_check, action_val)
+    print r
+    # obj_mdp = RobotMarkovModel()
+    # rand_weights = np.random.rand(1, 3)
+    # print rand_weights.shape
+    # weights = np.array([[1, 1, 0]])
+    # print weights.shape
+    # reward, features, n_features = obj_mdp.reward_func(r[0], r[1], r[2], weights)
+    # print reward
+    # print features
+    #
+    # reward_trial = np.ones(len(states))
+    # valuefunc = obj_state_util.calc_value_func(reward_trial, 0.01, 1e-2)
+    # print "value function is ", valuefunc
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # def get_model_indices(self, state_val):
+    #     # Since everything is saved in a linear flattened form
+    #     # Provides the z, y, x value of the current position based on the integer location value provided
+    #     z = round(state_val % self.grid_size)
+    #     y = round((state_val / self.grid_size) % self.grid_size)
+    #     # x = round((self.current_pos-(self.current_pos // self.grid_size)) % self.grid_size)
+    #     x = round((state_val / (self.grid_size * self.grid_size)) % self.grid_size)
+    #     # Returns the actual value by dividing it by 10 (which is the scale of integer position and state values)
+    #
+    #     return [x/float(10), y/float(10), z/float(10)]
+
+    '''
     def neighbouring(self, i, k):
 
         return abs(i[0] - k[0]) + abs(i[1] - k[1]) + abs(i[2] - k[2]) <= 1
@@ -167,7 +319,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
                 v[s] = max_v
 
         return v
-    '''
+
     def find_policy(self, n_states, n_actions, reward, discount,
                     threshold=1e-2, v=None):
 
@@ -225,66 +377,5 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
 
         return np.array(trajectories)
     '''
-
-
-if __name__ == '__main__':
-    # Robot Object called
-    # Pass the gridsize required
-    obj_state_util = RobotStateUtils(11)
-    states = obj_state_util.create_state_space_model_func()
-    print len(states)
-    action = obj_state_util.create_action_set_func()
-    row_column = obj_state_util.get_state_val_index([-0.1, 0.1, 1.0])
-    # print row_column
-    # print sorted(states.keys())
-    # print sorted(states.values())
-    state_check = 32
-    action_val = 1
-    # print "Current state index ", state_check
-    r = obj_state_util.step(state_check, action_val)
-    # print r
-    obj_mdp = RobotMarkovModel()
-    # rand_weights = np.random.rand(1, 3)
-    # print rand_weights.shape
-    weights = np.array([[1, 1, 0]])
-    # print weights.shape
-    reward, features, n_features = obj_mdp.reward_func(r[0], r[1], r[2], weights)
-    # print reward
-    # print features
-
-    reward_trial = np.ones(len(states))
-    valuefunc = obj_state_util.calc_value_func(reward_trial, 0.01, 1e-2)
-    print "value function is ", valuefunc
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    # def get_model_indices(self, state_val):
-    #     # Since everything is saved in a linear flattened form
-    #     # Provides the z, y, x value of the current position based on the integer location value provided
-    #     z = round(state_val % self.grid_size)
-    #     y = round((state_val / self.grid_size) % self.grid_size)
-    #     # x = round((self.current_pos-(self.current_pos // self.grid_size)) % self.grid_size)
-    #     x = round((state_val / (self.grid_size * self.grid_size)) % self.grid_size)
-    #     # Returns the actual value by dividing it by 10 (which is the scale of integer position and state values)
-    #
-    #     return [x/float(10), y/float(10), z/float(10)]
 
 
