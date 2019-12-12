@@ -67,12 +67,13 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
     def is_terminal_state(self, state):
 
         # because terminal state is being given in index val
-        if state == self.states[self.terminal_state_val]:
+        if state == self.terminal_state_val:
         # If terminal state is being given as a list then if state == self.terminal_state_val:
-            return 1
+            print "You have reached the terminal state "
+            return True
         else:
             # It has not yet reached the terminal state
-            return 0
+            return False
 
     def off_grid_move(self, new_state, old_state):
 
@@ -137,12 +138,13 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
                                                               resulting_state[2], self.weights)
         # print "reward is ", reward
         # Checks if the resulting state is moving it out of the grid
+        resulting_state_index = self.get_state_val_index(resulting_state)
         if not self.off_grid_move(resulting_state, self.states[curr_state]):
-            return resulting_state, reward, self.is_terminal_state(resulting_state), None
+            return resulting_state, reward, self.is_terminal_state(resulting_state_index), None
         else:
             # If movement is out of the grid then just return the current state value itself
             print "*****The value is moving out of the grid in step function*******"
-            return curr_state, reward, self.is_terminal_state(self.states[curr_state]), None
+            return curr_state, reward, self.is_terminal_state(curr_state), None
 
 
     def action_space_sample(self):
@@ -150,7 +152,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         return np.random.randint(0, len(self.action_space))
 
 def max_action(Q, state_val, action_values):
-    # print "max action action val ", state_val
+    # print "max action action val ", action_values
     q_values = np.array([Q[state_val, a] for a in action_values])
     print "values in max action is ", q_values
     action = np.argmax(q_values)
@@ -170,7 +172,7 @@ def q_learning(env_obj, alpha, gamma, epsilon):
     numGames = 500
     totalRewards = np.zeros(numGames)
     for i in range(numGames):
-        if i % 5000 == 0:
+        if i % 5 == 0:
             print('starting game ', i)
         done = False
         epRewards = 0
@@ -178,7 +180,7 @@ def q_learning(env_obj, alpha, gamma, epsilon):
         while not done:
             rand = np.random.random()
             # print "random val is ", rand
-            # print "state val inside loop ", observation
+            print "state val inside loop ", observation
              #print "action val inside loop", env_obj.action_space.keys()
             action = max_action(Q, observation, env_obj.action_space.keys()) if rand < (1 - epsilon) \
                 else env_obj.action_space_sample()
@@ -196,7 +198,7 @@ def q_learning(env_obj, alpha, gamma, epsilon):
             # print "misc val2 ", alpha * (reward + gamma * Q[next_observation_index, action_] -
                                                                        # Q[observation, action])
             observation = next_observation_index
-            print "state value", observation
+            # print "state value", observation
         if epsilon - 2 / numGames > 0:
             epsilon -= 2 / numGames
         else:
@@ -210,7 +212,7 @@ if __name__ == '__main__':
     # Pass the gridsize required
     weights = np.array([[1, 1, 0]])
     # term_state = np.random.randint(0, grid_size ** 3)]
-    obj_state_util = RobotStateUtils(2, weights)
+    obj_state_util = RobotStateUtils(3, weights)
     states = obj_state_util.create_state_space_model_func()
     # print states[100]
     action = obj_state_util.create_action_set_func()
@@ -405,5 +407,4 @@ if __name__ == '__main__':
 
         return np.array(trajectories)
     '''
-
 
