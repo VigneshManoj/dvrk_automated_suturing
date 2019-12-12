@@ -128,7 +128,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
     def step(self, curr_state, action):
         resulting_state = []
         # print "current state", self.states[curr_state]
-        # print "action taken", self.action_space[action]
+        # print "action taken", action, self.action_space[action]
         # Finds the resulting state when the action is taken at curr_state
         for i in range(0, self.n_states):
             resulting_state.append(round(self.states[curr_state][i] + self.action_space[action][i]))
@@ -141,23 +141,30 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
             return resulting_state, reward, self.is_terminal_state(resulting_state), None
         else:
             # If movement is out of the grid then just return the current state value itself
-            return self.states[curr_state], reward, \
+            print "*****The value is moving out of the grid in step function*******"
+            return curr_state, reward, \
                    self.is_terminal_state(self.states[curr_state]), None
 
 
     def action_space_sample(self):
+        print "random action choice ", np.random.choice(self.action_space)
         return np.random.choice(self.action_space)
 
 def max_action(Q, state_values, action_values):
-        values = np.array([Q[state_values, a] for a in action_values])
-        action = np.argmax(values)
-        return action_values[action]
+    print "max action state val ", state_values
+    values = np.array([Q[state_values, a] for a in action_values])
+    print "values in max action is ", values
+    action = np.argmax(values)
+    return action_values[action]
 
-def q_learning(state_space, action_space, env_obj, alpha, gamma, epsilon):
+def q_learning(env_obj, alpha, gamma, epsilon):
 
     Q = {}
-    for state in state_space:
-        for action in action_space:
+    # print "obj state ", env_obj.states.keys()
+    # print "obj action ", env_obj.action_space.keys()
+
+    for state in env_obj.states.keys():
+        for action in env_obj.action_space.keys():
             Q[state, action] = 0
 
     numGames = 50000
@@ -170,16 +177,20 @@ def q_learning(state_space, action_space, env_obj, alpha, gamma, epsilon):
         observation = env_obj.reset()
         while not done:
             rand = np.random.random()
-            action = max_action(Q, observation, action_space) if rand < (1 - epsilon) \
+            # print "random val is ", rand
+            # print "state val inside loop ", observation
+             #print "action val inside loop", env_obj.action_space.keys()
+            action = max_action(Q, observation, env_obj.action_space.keys()) if rand < (1 - epsilon) \
                 else env_obj.action_space_sample
             observation_, reward, done, info = env_obj.step(observation, action)
             epRewards += reward
-
-            action_ = max_action(Q, observation_, action_space)
+            next_observation_index = env_obj.get_state_val_index(observation_)
+            action_ = max_action(Q, next_observation_index, env_obj.action_space.keys())
+            print "next action val is ", action_
             Q[observation, action] = Q[observation, action] + alpha * (reward + \
-                                                                       gamma * Q[observation_, action_] - Q[
-                                                                           observation, action])
-            observation = observation_
+                                                                       gamma * Q[next_observation_index, action_] -
+                                                                       Q[observation, action])
+            observation = next_observation_index
         if epsilon - 2 / numGames > 0:
             epsilon -= 2 / numGames
         else:
@@ -198,14 +209,19 @@ if __name__ == '__main__':
     # print states[100]
     action = obj_state_util.create_action_set_func()
     row_column = obj_state_util.get_state_val_index([0.0, 0.0, 1.0])
-    print "index val", row_column
+    # print "index val", row_column
     # print sorted(states.keys())
     # print sorted(states.values())
     state_check = 32
     action_val = 15
     # print "Current state index ", state_check
     r = obj_state_util.step(state_check, action_val)
-    print "r is ", r
+    # print "r is ", r
+    total_rewards = q_learning(obj_state_util, weights, gamma=0.09, epsilon=0.2)
+    print "total rewards is ", total_rewards
+
+
+
     # obj_mdp = RobotMarkovModel()
     # rand_weights = np.random.rand(1, 3)
     # print rand_weights.shape
