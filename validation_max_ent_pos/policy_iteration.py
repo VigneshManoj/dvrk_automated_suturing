@@ -60,8 +60,8 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         return self.action_space
 
     def get_state_val_index(self, state_val):
-        index_val = state_val[0] * pow(self.grid_size, 2) + state_val[1] * pow(self.grid_size, 1) + \
-                    state_val[2]
+        index_val = abs((state_val[0] + 0.5) * pow(self.grid_size, 2)) + abs((state_val[1] + 0.5) * pow(self.grid_size, 1)) + \
+                    abs((state_val[2] + 0.5))
         return index_val*(self.grid_size-1)
 
     def is_terminal_state(self, state):
@@ -81,9 +81,9 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         if new_state not in self.states.values():
             return True
         # if trying to wrap around the grid, also the reason for the for x in _ is because old_state is a list
-        elif (x % self.grid_size for x in old_state) == 0 and (y % self.grid_size for y in new_state) == self.grid_size - 1:
+        elif abs(x % self.grid_size for x in old_state) == 0 and abs(y % self.grid_size for y in new_state) == self.grid_size - 1:
             return True
-        elif (x % self.grid_size for x in old_state) == self.grid_size - 1 and (y % self.grid_size for y in new_state) == 0:
+        elif abs(x % self.grid_size for x in old_state) == self.grid_size - 1 and abs(y % self.grid_size for y in new_state) == 0:
             return True
         else:
             # If there are no issues with the new state value then return false, negation is present on the other end
@@ -236,18 +236,17 @@ if __name__ == '__main__':
     obj_state_util = RobotStateUtils(11, weights)
     states = obj_state_util.create_state_space_model_func()
     print "State space created is ", states
-    action = obj_state_util.create_action_set_func()
-    row_column = obj_state_util.get_state_val_index([-0.5, 0.0, 0])
-    print "index val", row_column
-    # print sorted(states.keys())
-    # print sorted(states.values())
-    state_check = 10
-    action_val = 15
-    print "Current state index ", obj_state_util.states[state_check]
+    # action = obj_state_util.create_action_set_func()
+    # x = [-0.5, 0.2, 0.4]
+    # row_column = obj_state_util.get_state_val_index(x)
+    # print "index val", row_column, x
+    # state_check = row_column
+    # action_val = 15
+    # print "Current state index ", obj_state_util.states[state_check]
     # r = obj_state_util.step(state_check, action_val)
     # print "r is ", r
-    # total_rewards = q_learning(obj_state_util, 0.1, gamma=0.9, epsilon=0.2)
-    # print "total rewards is ", total_rewards
+    total_rewards = q_learning(obj_state_util, 0.1, gamma=0.9, epsilon=0.2)
+    print "total rewards is ", total_rewards
 
 
 
