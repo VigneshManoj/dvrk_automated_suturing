@@ -26,7 +26,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         # Total Number of states defining the state of the robot
         self.n_states = 3
         # self.current_pos = 1000
-        self.terminal_state_val = 2
+        self.terminal_state_val = 25
         self.weights = weights
 
     def create_state_space_model_func(self):
@@ -62,7 +62,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
     def get_state_val_index(self, state_val):
         index_val = abs((state_val[0] + 0.5) * pow(self.grid_size, 2)) + abs((state_val[1] + 0.5) * pow(self.grid_size, 1)) + \
                     abs((state_val[2] + 0.5))
-        return index_val*(self.grid_size-1)
+        return round(index_val*(self.grid_size-1))
 
     def is_terminal_state(self, state):
 
@@ -81,14 +81,14 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         if new_state not in self.states.values():
             return True
         # if trying to wrap around the grid, also the reason for the for x in _ is because old_state is a list
-        elif abs(x % self.grid_size for x in old_state) == 0 and abs(y % self.grid_size for y in new_state) == self.grid_size - 1:
+        elif (x % self.grid_size for x in old_state) == 0 and (y % self.grid_size for y in new_state) == self.grid_size - 1:
             return True
-        elif abs(x % self.grid_size for x in old_state) == self.grid_size - 1 and abs(y % self.grid_size for y in new_state) == 0:
+        elif (x % self.grid_size for x in old_state) == self.grid_size - 1 and (y % self.grid_size for y in new_state) == 0:
             return True
         else:
             # If there are no issues with the new state value then return false, negation is present on the other end
             return False
-    '''
+
     def reward_func(self, end_pos_x, end_pos_y, end_pos_z, alpha):
         # Creates list of all the features being considered
         features = [self.features_array_prim_func, self.features_array_sec_func, self.features_array_tert_func, self.features_array_sum_func]
@@ -111,6 +111,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
             reward = -1
 
         return reward, 1, 2
+    '''
 
     # Created feature set1 which basically takes the exponential of sum of individually squared value
     def features_array_prim_func(self, end_pos_x, end_pos_y, end_pos_z):
@@ -169,7 +170,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
 def max_action(Q, state_val, action_values):
     # print "max action action val ", action_values
     q_values = np.array([Q[state_val, a] for a in action_values])
-    print "values in max action is ", q_values
+    # print "values in max action is ", q_values
     action = np.argmax(q_values)
     # print "---max action function action ", action
     return action_values[action]
@@ -184,10 +185,10 @@ def q_learning(env_obj, alpha, gamma, epsilon):
         for action in env_obj.action_space.keys():
             Q[state, action] = 0
 
-    numGames = 500
+    numGames = 50
     totalRewards = np.zeros(numGames)
     for i in range(numGames):
-        if i % 50 == 0:
+        if i % 5 == 0:
             print('-------------starting game-------------- ', i)
         done = False
         epRewards = 0
@@ -214,7 +215,7 @@ def q_learning(env_obj, alpha, gamma, epsilon):
             Q[observation, action] = Q[observation, action] + \
                                      alpha * (reward + gamma * Q[next_observation_index, action_] -
                                               Q[observation, action])
-            misc_val = Q[observation, action]
+            # misc_val = Q[observation, action]
             # print "misc val1 ", Q[observation, action]
             # print "misc val2 ", alpha * (reward + gamma * Q[next_observation_index, action_] -
                                                                        # Q[observation, action])
@@ -225,7 +226,7 @@ def q_learning(env_obj, alpha, gamma, epsilon):
         else:
             epsilon = 0
         totalRewards[i] = epRewards
-        return totalRewards
+    return totalRewards, len(totalRewards)
 
 
 if __name__ == '__main__':
@@ -235,8 +236,9 @@ if __name__ == '__main__':
     # term_state = np.random.randint(0, grid_size ** 3)]
     obj_state_util = RobotStateUtils(11, weights)
     states = obj_state_util.create_state_space_model_func()
+    action = obj_state_util.create_action_set_func()
     print "State space created is ", states
-    # action = obj_state_util.create_action_set_func()
+
     # x = [-0.5, 0.2, 0.4]
     # row_column = obj_state_util.get_state_val_index(x)
     # print "index val", row_column, x
@@ -245,8 +247,8 @@ if __name__ == '__main__':
     # print "Current state index ", obj_state_util.states[state_check]
     # r = obj_state_util.step(state_check, action_val)
     # print "r is ", r
-    total_rewards = q_learning(obj_state_util, 0.1, gamma=0.9, epsilon=0.2)
-    print "total rewards is ", total_rewards
+    total_rewards, len_r = q_learning(obj_state_util, 0.1, gamma=0.9, epsilon=0.2)
+    print "total rewards is ", total_rewards, len_r
 
 
 
