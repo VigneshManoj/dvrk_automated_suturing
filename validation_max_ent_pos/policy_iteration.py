@@ -16,7 +16,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         # The value 11 etc decides how sparse the mesh size of the cube would be
         self.grid_size = grid_size
         self.grid = np.zeros((self.grid_size, self.grid_size, self.grid_size))
-        self.lin_space_limits = np.linspace(0, 1, self.grid_size, dtype='float32')
+        self.lin_space_limits = np.linspace(-0.5, 0.5, self.grid_size, dtype='float32')
         # Creates a dictionary for storing the state values
         self.states = {}
         # Creates a dictionary for storing the action values
@@ -60,8 +60,8 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         return self.action_space
 
     def get_state_val_index(self, state_val):
-        index_val = int(state_val[0]) * pow(self.grid_size, 2) + int(state_val[1]) * pow(self.grid_size, 1) + \
-                    int(state_val[2])
+        index_val = state_val[0] * pow(self.grid_size, 2) + state_val[1] * pow(self.grid_size, 1) + \
+                    state_val[2]
         return index_val*(self.grid_size-1)
 
     def is_terminal_state(self, state):
@@ -88,10 +88,10 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         else:
             # If there are no issues with the new state value then return false, negation is present on the other end
             return False
-
+    '''
     def reward_func(self, end_pos_x, end_pos_y, end_pos_z, alpha):
         # Creates list of all the features being considered
-        features = [self.features_array_prim_func, self.features_array_sec_func, self.features_array_tert_func]
+        features = [self.features_array_prim_func, self.features_array_sec_func, self.features_array_tert_func, self.features_array_sum_func]
         reward = 0
         features_arr = []
         for n in range(0, len(features)):
@@ -100,6 +100,17 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
             reward = reward + alpha[0, n]*features_arr[n]
         # Created the feature function assuming everything has importance, so therefore added each parameter value
         return reward, np.array([features_arr]), len(features)
+    '''
+    def reward_func(self, end_pos_x, end_pos_y, end_pos_z, alpha):
+        # Creates list of all the features being considered
+
+        # reward = -1
+        if self.is_terminal_state([end_pos_x, end_pos_y, end_pos_z]):
+            reward = 0
+        else:
+            reward = -1
+
+        return reward, 1, 2
 
     # Created feature set1 which basically takes the exponential of sum of individually squared value
     def features_array_prim_func(self, end_pos_x, end_pos_y, end_pos_z):
@@ -117,6 +128,10 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         feature_3 = np.exp(-(end_pos_z**2))
         return feature_3
 
+    def features_array_sum_func(self, end_pos_x, end_pos_y, end_pos_z):
+        feature_4 = np.exp(-(end_pos_x**2 + end_pos_y**2 + end_pos_z**2))
+        return feature_4
+
     def reset(self):
         self.pos = np.random.randint(0, len(self.states))
         self.grid = np.zeros((self.grid_size, self.grid_size, self.grid_size))
@@ -124,13 +139,13 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
 
     def step(self, curr_state, action):
         resulting_state = []
-        # print "current state", self.states[curr_state]
-        # print "action taken", action, self.action_space[action]
+        print "current state", self.states[curr_state]
+        print "action taken", action, self.action_space[action]
         # Finds the resulting state when the action is taken at curr_state
         for i in range(0, self.n_states):
-            resulting_state.append(round(self.states[curr_state][i] + self.action_space[action][i]))
+            resulting_state.append(round(self.states[curr_state][i] + self.action_space[action][i], 1))
 
-        # print "resulting state is ", resulting_state
+        print "resulting state is ", resulting_state
         # Calculates the reward and returns the reward value, features value and
         # number of features based on the features provided
         reward, features_arr, len_features = self.reward_func(resulting_state[0],
@@ -144,7 +159,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         else:
             # If movement is out of the grid then just return the current state value itself
             print "*****The value is moving out of the grid in step function*******"
-            return curr_state, reward, self.is_terminal_state(curr_state), None
+            return self.states[curr_state], reward, self.is_terminal_state(curr_state), None
 
 
     def action_space_sample(self):
@@ -172,33 +187,39 @@ def q_learning(env_obj, alpha, gamma, epsilon):
     numGames = 500
     totalRewards = np.zeros(numGames)
     for i in range(numGames):
-        if i % 5 == 0:
-            print('starting game ', i)
+        if i % 50 == 0:
+            print('-------------starting game-------------- ', i)
         done = False
         epRewards = 0
         observation = env_obj.reset()
+        # observation = 0
+
         while not done:
             rand = np.random.random()
             # print "random val is ", rand
-            print "state val inside loop ", observation
+            print "----------------------------------------------------------------------------"
+            print "Starting state val inside loop ", observation
              #print "action val inside loop", env_obj.action_space.keys()
             action = max_action(Q, observation, env_obj.action_space.keys()) if rand < (1 - epsilon) \
                 else env_obj.action_space_sample()
             observation_, reward, done, info = env_obj.step(observation, action)
             epRewards += reward
             next_observation_index = env_obj.get_state_val_index(observation_)
+            print "Next obs index", next_observation_index
             action_ = max_action(Q, next_observation_index, env_obj.action_space.keys())
             # print "current action val is ", action
             # print "next action val is ", action_
             # print "reward is ", reward
+
             Q[observation, action] = Q[observation, action] + \
                                      alpha * (reward + gamma * Q[next_observation_index, action_] -
                                               Q[observation, action])
+            misc_val = Q[observation, action]
             # print "misc val1 ", Q[observation, action]
             # print "misc val2 ", alpha * (reward + gamma * Q[next_observation_index, action_] -
                                                                        # Q[observation, action])
             observation = next_observation_index
-            # print "state value", observation
+            print "state value after assigning to new state", observation
         if epsilon - 2 / numGames > 0:
             epsilon -= 2 / numGames
         else:
@@ -210,23 +231,23 @@ def q_learning(env_obj, alpha, gamma, epsilon):
 if __name__ == '__main__':
     # Robot Object called
     # Pass the gridsize required
-    weights = np.array([[1, 1, 0]])
+    weights = np.array([[1, 1, 0, 1]])
     # term_state = np.random.randint(0, grid_size ** 3)]
-    obj_state_util = RobotStateUtils(3, weights)
+    obj_state_util = RobotStateUtils(11, weights)
     states = obj_state_util.create_state_space_model_func()
-    # print states[100]
+    print "State space created is ", states
     action = obj_state_util.create_action_set_func()
-    row_column = obj_state_util.get_state_val_index([0.0, 0.0, 1.0])
-    # print "index val", row_column
+    row_column = obj_state_util.get_state_val_index([-0.5, 0.0, 0])
+    print "index val", row_column
     # print sorted(states.keys())
     # print sorted(states.values())
-    state_check = 2
+    state_check = 10
     action_val = 15
-    # print "Current state index ", state_check
-    r = obj_state_util.step(state_check, action_val)
+    print "Current state index ", obj_state_util.states[state_check]
+    # r = obj_state_util.step(state_check, action_val)
     # print "r is ", r
-    total_rewards = q_learning(obj_state_util, 0.1, gamma=0.9, epsilon=0.2)
-    print "total rewards is ", total_rewards
+    # total_rewards = q_learning(obj_state_util, 0.1, gamma=0.9, epsilon=0.2)
+    # print "total rewards is ", total_rewards
 
 
 
