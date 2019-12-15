@@ -209,10 +209,11 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         if self.trans_prob == 1:
             for i in range(0, self.n_states):
                 resulting_state.append(round(self.states[curr_state][i] + self.action_space[action][i], 1))
-            # resulting_state_index = self.get_state_val_index(resulting_state)
+            resulting_state_index = self.get_state_val_index(resulting_state)
+
             if not self.off_grid_move(resulting_state, self.states[curr_state]):
                 # return resulting_state, reward, self.is_terminal_state(resulting_state_index), None
-                return [(resulting_state, 1)]
+                return [(resulting_state_index, 1)]
             else:
                 # if the state is invalid, stay in the current state
                 return [(curr_state, 1)]
@@ -223,25 +224,22 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         n_actions = len(self.action_space)
         P_a = np.zeros((n_states, n_actions), dtype=np.int32)
         for si in range(n_states):
-            posi = self.states[si]
             for a in range(n_actions):
-                ai = self.action_space[a]
-                probs = self.get_transition_states_and_probs(posi, ai)
+                probs = self.get_transition_states_and_probs(si, a)
 
                 for posj, prob in probs:
-                    sj = self.get_state_val_index(posj)
                     # Prob of si to sj given action a
                     prob = int(prob)
                     if prob == 1:
-                        P_a[si, a] = sj
+                        P_a[si, a] = posj
                     elif prob != 0:
                         raise ValueError('not a deterministic environment!')
         return P_a
 
-    def compute_state_visition_freq(self):
+    def compute_state_visition_freq(self, trajs, optimal_policy):
         P_a = self.get_transition_mat_deterministic()
         n_states, _, n_actions = np.shape(P_a)
-        optimal_policy, trajs = q_learning(weights, alpha=0.1, gamma=0.9, epsilon=0.2)
+        # optimal_policy, trajs = q_learning(weights, alpha=0.1, gamma=0.9, epsilon=0.2)
         T = len(trajs[0])
         # mu[s, t] is the prob of visiting state s at time t
         mu = np.zeros([n_states, T])
@@ -252,7 +250,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
 
         for s in range(n_states):
             for t in range(T - 1):
-                mu[s, t + 1] = sum([mu[pre_s, t] * P_a[pre_s, s, int(optimal_policy[pre_s])] for pre_s in range(n_states)])
+                mu[s, t + 1] = sum([mu[pre_s, t] * P_a[pre_s, int(optimal_policy[pre_s])] for pre_s in range(n_states)])
         p = np.sum(mu, 1)
         return p
 
@@ -337,9 +335,9 @@ def q_learning(weights, alpha, gamma, epsilon):
         state_dict = {i: state_trajectory}
         state_trajectories.update(state_dict)
         sum_state_trajectory = env_obj.sum_of_features(state_trajectories[most_reward_index])
-
+    expected_svf = env_obj.compute_state_visition_freq(state_trajectories, policy[most_reward_index])
     # return policy[most_reward_index], sum_state_trajectory
-    return policy[most_reward_index], state_trajectories
+    return policy[most_reward_index], sum_state_trajectory, expected_svf
 
 
 
@@ -349,9 +347,9 @@ if __name__ == '__main__':
     # Pass the gridsize required
     weights = np.array([[1, 1, 0]])
     # term_state = np.random.randint(0, grid_size ** 3)]
-    # obj_state_util = RobotStateUtils(11, weights)
-    # states = obj_state_util.create_state_space_model_func()
-    # action = obj_state_util.create_action_set_func()
+    env_obj = RobotStateUtils(11, weights)
+    states = env_obj.create_state_space_model_func()
+    action = env_obj.create_action_set_func()
     # print "State space created is ", states
 
     # x = [-0.5, 0.2, 0.4]
@@ -362,10 +360,14 @@ if __name__ == '__main__':
     # print "Current state index ", obj_state_util.states[state_check]
     # r = obj_state_util.step(state_check, action_val)
     # print "r is ", r
-    policy, states = q_learning(weights, alpha=0.1, gamma=0.9, epsilon=0.2)
+    # policy, state_traj = q_learning(env_obj, weights, alpha=0.1, gamma=0.9, epsilon=0.2)
     # print "best policy is ", policy
-    # print "state traj", states
+    # print "state traj", state_traj
     # print "rewards ", rewards
+    # P_a = env_obj.get_transition_mat_deterministic()
+    # print "prob is ", P_a
+    # print "prob shape is ", P_a.shape
+    # print "prob value is ", P_a[0]
 
 
 '''

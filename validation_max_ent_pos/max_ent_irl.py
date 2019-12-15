@@ -33,15 +33,14 @@ class MaxEntIRL():
             # Not required: self.reward = complete_features_array.dot(alpha)
             # expected_svf = self.find_expected_svf(complete_features_array, discount, n_trajectories,
             #                                                           n_policy_iter, weights, n_states)
-            expected_svf = self.find_expected_svf(discount=discount, n_policy_iter=n_policy_iter,
-                                                  weights=weights, n_states=n_states)
+            optimal_policy, state_features, expected_svf = self.find_expected_svf(weights, discount)
             # print "shape of features and svf is ", expected_svf
             # print "features is ", state_space_model_features
             # grad = feature_expectations - state_space_model_features.dot(expected_svf)
             # print "---shapes ----- \n", feature_expectations.reshape(2, 1).shape, expected_svf.reshape(2, 1).shape
             # print "Complete features array shape ", complete_features_array.shape
             # print "expected svf shape ", expected_svf.shape
-            grad = feature_expectations.reshape(n_features, 1) - expected_svf
+            grad = feature_expectations.reshape(n_features, 1) - (state_features*expected_svf).reshape(n_features, 1)
 
             weights += learning_rate * np.transpose(grad)
             print "weights is ", weights
@@ -58,59 +57,11 @@ class MaxEntIRL():
         # Return the expert data feature expectations
         return feature_expectations
 
-    def find_expected_svf(self, discount, n_policy_iter, weights, n_states):
-        # Trajectory length is calculated as follows:
-        # Trajectory is basically list of all Traj1 Traj2 Traj3 Traj4 of user 1 and
-        # similarly  Traj1 Traj2 Traj3 Traj4 for user 2
-        # So basically inside trajectory is the list of all states visited
-        # Outside trajectory value would be the different trajectories collected from user (say trial1 trial2 etc)
-        # So in this case currently, it is 1 in our case
+    def find_expected_svf(self, weights, discount):
+        optimal_policy, state_features, expected_svf = q_learning(weights=weights, alpha=0.1,
+                                                                  gamma=discount, epsilon=0.2)
 
-        # Write code to pass n_actions throughout the program to reach this function
-        n_actions = 27
-        trajectory_length = 1
-        optimal_policy, state_features = q_learning(weights, alpha=0.1, gamma=0.9, epsilon=0.2)
-
-        """compute the expected states visition frequency p(s| theta, T) 
-        using dynamic programming
-
-        inputs:
-          P_a     NxNxN_ACTIONS matrix - transition dynamics
-          gamma   float - discount factor
-          trajs   list of list of Steps - collected from expert
-          policy  Nx1 vector (or NxN_ACTIONS if deterministic=False) - policy
-
-
-        returns:
-          p       Nx1 vector - state visitation frequencies
-        """
-        N_STATES, _, N_ACTIONS = np.shape(P_a)
-
-        T = len(trajs[0])
-        # mu[s, t] is the prob of visiting state s at time t
-        mu = np.zeros([N_STATES, T])
-
-        for traj in trajs:
-            mu[traj[0].cur_state, 0] += 1
-        mu[:, 0] = mu[:, 0] / len(trajs)
-
-        for s in range(N_STATES):
-            for t in range(T - 1):
-                mu[s, t + 1] = sum(
-                    [mu[pre_s, t] * P_a[pre_s, s, int(optimal_policy[pre_s])] for pre_s in range(N_STATES)])
-        p = np.sum(mu, 1)
-        return p
-
-    def find_svf(self, n_states, weights):
-        svf = np.zeros(n_states)
-        optimal_policy = q_learning(weights, alpha=0.1, gamma=0.9, epsilon=0.2)
-
-
-        # svf /= trajectories.shape[0]
-        # print "svf is ", svf
-        return svf
-
-
+        return optimal_policy, state_features, expected_svf
 
 
 
