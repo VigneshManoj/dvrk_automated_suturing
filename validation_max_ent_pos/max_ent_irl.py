@@ -19,7 +19,7 @@ class MaxEntIRL():
         n_states, d_states = complete_features_array.shape
         # Default value for now
         n_features = 3
-        print "complete feature", complete_features_array
+        # print "complete feature", complete_features_array
         # print "length of action set", len(action_set)
         # Initialize alpha with random weights based on the dimensionality of the feature space
         # alpha = rn.uniform(size=(d_states,))
@@ -33,15 +33,16 @@ class MaxEntIRL():
             # Not required: self.reward = complete_features_array.dot(alpha)
             # expected_svf = self.find_expected_svf(complete_features_array, discount, n_trajectories,
             #                                                           n_policy_iter, weights, n_states)
-            expected_svf = self.find_svf(n_states, complete_features_array)
+            expected_svf = self.find_expected_svf(discount=discount, n_policy_iter=n_policy_iter,
+                                                  weights=weights, n_states=n_states)
             # print "shape of features and svf is ", expected_svf
             # print "features is ", state_space_model_features
             # grad = feature_expectations - state_space_model_features.dot(expected_svf)
             # print "---shapes ----- \n", feature_expectations.reshape(2, 1).shape, expected_svf.reshape(2, 1).shape
-            print "Complete features array shape ", complete_features_array.shape
-            print "expected svf shape ", expected_svf.shape
-            grad = feature_expectations.reshape(n_features, 1) - complete_features_array.T.dot(expected_svf)
-            #
+            # print "Complete features array shape ", complete_features_array.shape
+            # print "expected svf shape ", expected_svf.shape
+            grad = feature_expectations.reshape(n_features, 1) - expected_svf
+
             weights += learning_rate * np.transpose(grad)
             print "weights is ", weights
 
@@ -57,7 +58,7 @@ class MaxEntIRL():
         # Return the expert data feature expectations
         return feature_expectations
 
-    def find_expected_svf(self, trajectories, discount, n_trajectories, n_policy_iter, weights, n_states):
+    def find_expected_svf(self, discount, n_policy_iter, weights, n_states):
         # Trajectory length is calculated as follows:
         # Trajectory is basically list of all Traj1 Traj2 Traj3 Traj4 of user 1 and
         # similarly  Traj1 Traj2 Traj3 Traj4 for user 2
@@ -68,11 +69,11 @@ class MaxEntIRL():
         # Write code to pass n_actions throughout the program to reach this function
         n_actions = 27
         trajectory_length = 1
-        optimal_policy = q_learning(weights, alpha=0.1, gamma=0.9, epsilon=0.2)
+        optimal_policy, state_features = q_learning(weights, alpha=0.1, gamma=0.9, epsilon=0.2)
 
         print "policy in maxent is ", optimal_policy
         start_state_count = np.zeros(n_states)
-        p_start_state = 0.25
+        p_start_state = 0.25**3
         # print "state state count ", start_state_count
         # print "n traj ", n_trajectories, trajectory_length
         # print "start state value ", p_start_state
@@ -85,15 +86,18 @@ class MaxEntIRL():
 
         return np.sum(expected_svf)
 
-    def find_svf(self, n_states, trajectories):
+    def find_svf(self, n_states, weights):
         svf = np.zeros(n_states)
+        optimal_policy = q_learning(weights, alpha=0.1, gamma=0.9, epsilon=0.2)
 
-        for state, _, _ in trajectories:
-            svf[state] += 1
 
-        svf /= trajectories.shape[0]
+        # svf /= trajectories.shape[0]
         # print "svf is ", svf
         return svf
+
+
+
+
 
 
         # robot_state_utils = RobotStateUtils()

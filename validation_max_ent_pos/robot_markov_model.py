@@ -21,32 +21,6 @@ class RobotMarkovModel:
         # Return trajectories data if any function requires it outside this class
         return self.state_trajectories, self.action_trajectories
 
-    # Returns the trajetory and rewards of the expert trajectory data
-    def trajectories_features_rewards_array(self, weights):
-        # Creates the array of features and rewards for the whole trajectory
-        # It calls the RobotMarkovModel class reward function which returns the reward and features for that specific
-        # state values. These values are repeatedly added until the length of trajectory
-        trajectories_reward = []
-        trajectories_features = []
-        trajectory_reward = np.zeros([1, 1], dtype='float32')
-        trajectory_features = np.zeros([3, 1], dtype='float32')
-        for i in range(0, self.state_trajectories.shape[0]):
-            # Reads only the state trajectory data and assigns the variables value of the first set of state values
-            end_pos_x = self.state_trajectories[i, 0]
-            end_pos_y = self.state_trajectories[i, 1]
-            end_pos_z = self.state_trajectories[i, 2]
-            # Calls the rewards function which returns the reward and features for that specific set of state values
-            rewards, features, len_features = self.reward_func(end_pos_x, end_pos_y, end_pos_z, weights)
-            # Sum up all the rewards of the trajectory
-            trajectory_reward = trajectory_reward + rewards
-            # Sum up all the rewards of the features
-            trajectory_features = trajectory_features + np.vstack((features[0], features[1], features[2]))
-        # Create a list of all the trajectory rewards and features
-        trajectories_reward.append(trajectory_reward)
-        trajectories_features.append(trajectory_features)
-        # Returns the array of trajectory features and reward
-        return trajectories_features, trajectories_reward
-
     # Calculates reward function
     def reward_func(self, end_pos_x, end_pos_y, end_pos_z, alpha):
         # Creates list of all the features being considered
@@ -87,13 +61,12 @@ class RobotMarkovModel:
         # Created the feature function assuming everything has importance, so therefore added each parameter value
         return features_arr
 
-    # Returns the list of all the features and sum of features of an expert trajectory as an Numpy array
-    def trajectories_features_array(self):
+
+    def generate_trajectories(self):
         # Creates the array of features and rewards for the whole trajectory
         # It calls the RobotMarkovModel class reward function which returns the reward and features for that specific
         # state values. These values are repeatedly added until the length of trajectory
         complete_feature_array = []
-        features = 0
         sum_trajectories_features = []
         trajectory_features = np.zeros([3, 1], dtype='float32')
         for i in range(0, self.state_trajectories.shape[0]):
@@ -111,4 +84,12 @@ class RobotMarkovModel:
         sum_trajectories_features.append(trajectory_features)
         # Returns the array of trajectory features and returns the array of all the features
         return np.array(sum_trajectories_features), np.array(complete_feature_array)
+
+if __name__ == '__main__':
+    obj = RobotMarkovModel()
+    sum_feat, feat_array = obj.generate_trajectories()
+    print "sum of features ", sum_feat
+    print "features array ", feat_array
+    print "len ", len(feat_array)
+
 

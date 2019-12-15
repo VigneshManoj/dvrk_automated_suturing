@@ -162,10 +162,44 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
             print "*****The value is moving out of the grid in step function*******"
             return self.states[curr_state], reward, self.is_terminal_state(curr_state), None
 
-
     def action_space_sample(self):
         print "random action choice ", np.random.randint(0, len(self.action_space))
         return np.random.randint(0, len(self.action_space))
+
+    def features_func(self, end_pos_x, end_pos_y, end_pos_z):
+
+        features = [self.features_array_prim_func, self.features_array_sec_func, self.features_array_tert_func]
+        features_arr = []
+        for n in range(0, len(features)):
+            features_arr.append(features[n](end_pos_x, end_pos_y, end_pos_z))
+        # Created the feature function assuming everything has importance, so therefore added each parameter value
+        return features_arr
+
+    def sum_of_features(self, state_trajectory):
+        # Creates the array of features and rewards for the whole trajectory
+        # It calls the RobotMarkovModel class reward function which returns the reward and features for that specific
+        # state values. These values are repeatedly added until the length of trajectory
+        n = len(state_trajectory)
+        # print "n is ", n
+        # print "state traj is ", state_trajectory
+        # print "state traj is ", state_trajectory[0][0]
+        sum_trajectories_features = []
+        trajectory_features = np.zeros([3, 1], dtype='float32')
+        for i in range(0, n):
+            # Reads only the state trajectory data and assigns the variables value of the first set of state values
+            end_pos_x = state_trajectory[i][0]
+            end_pos_y = state_trajectory[i][1]
+            end_pos_z = state_trajectory[i][2]
+
+            # Calls the rewards function which returns features for that specific set of state values
+            features = self.features_func(end_pos_x, end_pos_y, end_pos_z)
+            # Creates a list of all the features
+            trajectory_features = trajectory_features + np.vstack((features[0], features[1], features[2]))
+        # Calculates the sum of all the trajectory feature values
+        sum_trajectories_features.append(trajectory_features)
+        # Returns the array of trajectory features and returns the array of all the features
+        return np.array(sum_trajectories_features)
+
 
 def max_action(Q, state_val, action_values):
     # print "max action action val ", action_values
@@ -186,8 +220,10 @@ def q_learning(weights, alpha, gamma, epsilon):
     num_games = 50
     total_rewards = np.zeros(num_games)
     policy = {}
+    state_trajectories = {}
     # Default value
     most_reward_index = 0
+    sum_state_trajectory = 0
     # print "obj state ", env_obj.states.keys()
     # print "obj action ", env_obj.action_space.keys()
 
@@ -201,6 +237,7 @@ def q_learning(weights, alpha, gamma, epsilon):
         done = False
         ep_rewards = 0
         episode_policy = []
+        state_trajectory = []
         observation = env_obj.reset()
         # observation = 0
 
@@ -215,7 +252,7 @@ def q_learning(weights, alpha, gamma, epsilon):
             observation_, reward, done, info = env_obj.step(observation, action)
             ep_rewards += reward
             next_observation_index = env_obj.get_state_val_index(observation_)
-            print "Next obs index", next_observation_index
+            # print "Next obs index", next_observation_index
             action_ = max_action(Q, next_observation_index, env_obj.action_space.keys())
             # print "current action val is ", action
             # print "next action val is ", action_
@@ -231,6 +268,7 @@ def q_learning(weights, alpha, gamma, epsilon):
             observation = next_observation_index
             print "state value after assigning to new state", observation
             episode_policy.append(action)
+            state_trajectory.append(env_obj.states[observation])
         if epsilon - 2 / num_games > 0:
             epsilon -= 2 / num_games
         else:
@@ -240,8 +278,11 @@ def q_learning(weights, alpha, gamma, epsilon):
         most_reward_index = np.argmax(total_rewards)
         policy_dict = {i: episode_policy}
         policy.update(policy_dict)
+        state_dict = {i: state_trajectory}
+        state_trajectories.update(state_dict)
+        sum_state_trajectory = env_obj.sum_of_features(state_trajectories[most_reward_index])
 
-    return policy[most_reward_index]
+    return policy[most_reward_index], sum_state_trajectory
     # return np.array(totalRewards), len(totalRewards)
 
 
@@ -265,8 +306,9 @@ if __name__ == '__main__':
     # print "Current state index ", obj_state_util.states[state_check]
     # r = obj_state_util.step(state_check, action_val)
     # print "r is ", r
-    policy = q_learning(weights, alpha=0.1, gamma=0.9, epsilon=0.2)
+    policy, states = q_learning(weights, alpha=0.1, gamma=0.9, epsilon=0.2)
     print "best policy is ", policy
+    print "state traj", states
     # print "rewards ", rewards
 
 
