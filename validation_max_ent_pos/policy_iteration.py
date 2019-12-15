@@ -204,12 +204,12 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
     def get_transition_states_and_probs(self, curr_state, action):
 
         if self.is_terminal_state(curr_state):
-            return [(tuple(curr_state), 1)]
+            return [(curr_state, 1)]
         resulting_state = []
         if self.trans_prob == 1:
             for i in range(0, self.n_states):
                 resulting_state.append(round(self.states[curr_state][i] + self.action_space[action][i], 1))
-            resulting_state_index = self.get_state_val_index(resulting_state)
+            # resulting_state_index = self.get_state_val_index(resulting_state)
             if not self.off_grid_move(resulting_state, self.states[curr_state]):
                 # return resulting_state, reward, self.is_terminal_state(resulting_state_index), None
                 return [(resulting_state, 1)]
@@ -238,16 +238,16 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
                         raise ValueError('not a deterministic environment!')
         return P_a
 
-    def compute_state_visition_freq(self, P_a, trajs):
-
+    def compute_state_visition_freq(self):
+        P_a = self.get_transition_mat_deterministic()
         n_states, _, n_actions = np.shape(P_a)
-        optimal_policy, state_features = q_learning(weights, alpha=0.1, gamma=0.9, epsilon=0.2)
+        optimal_policy, trajs = q_learning(weights, alpha=0.1, gamma=0.9, epsilon=0.2)
         T = len(trajs[0])
         # mu[s, t] is the prob of visiting state s at time t
         mu = np.zeros([n_states, T])
 
         for traj in trajs:
-            mu[traj[0].cur_state, 0] += 1
+            mu[traj[0, 0]] += 1
         mu[:, 0] = mu[:, 0] / len(trajs)
 
         for s in range(n_states):
@@ -338,8 +338,8 @@ def q_learning(weights, alpha, gamma, epsilon):
         state_trajectories.update(state_dict)
         sum_state_trajectory = env_obj.sum_of_features(state_trajectories[most_reward_index])
 
-    return policy[most_reward_index], sum_state_trajectory
-    # return np.array(totalRewards), len(totalRewards)
+    # return policy[most_reward_index], sum_state_trajectory
+    return policy[most_reward_index], state_trajectories
 
 
 
@@ -363,8 +363,8 @@ if __name__ == '__main__':
     # r = obj_state_util.step(state_check, action_val)
     # print "r is ", r
     policy, states = q_learning(weights, alpha=0.1, gamma=0.9, epsilon=0.2)
-    print "best policy is ", policy
-    print "state traj", states
+    # print "best policy is ", policy
+    # print "state traj", states
     # print "rewards ", rewards
 
 
