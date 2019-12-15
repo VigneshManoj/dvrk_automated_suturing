@@ -28,6 +28,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         # self.current_pos = 1000
         self.terminal_state_val = 25
         self.weights = weights
+        self.trans_prob = 1
 
     def create_state_space_model_func(self):
         # Creates the state space of the robot based on the values initialized for linspace by the user
@@ -199,6 +200,61 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         sum_trajectories_features.append(trajectory_features)
         # Returns the array of trajectory features and returns the array of all the features
         return np.array(sum_trajectories_features)
+
+    def get_transition_states_and_probs(self, curr_state, action):
+
+        if self.is_terminal_state(curr_state):
+            return [(tuple(curr_state), 1)]
+        resulting_state = []
+        if self.trans_prob == 1:
+            for i in range(0, self.n_states):
+                resulting_state.append(round(self.states[curr_state][i] + self.action_space[action][i], 1))
+            resulting_state_index = self.get_state_val_index(resulting_state)
+            if not self.off_grid_move(resulting_state, self.states[curr_state]):
+                # return resulting_state, reward, self.is_terminal_state(resulting_state_index), None
+                return [(resulting_state, 1)]
+            else:
+                # if the state is invalid, stay in the current state
+                return [(curr_state, 1)]
+
+    def get_transition_mat_deterministic(self):
+
+        n_states = self.grid_size**3
+        n_actions = len(self.action_space)
+        P_a = np.zeros((n_states, n_actions), dtype=np.int32)
+        for si in range(n_states):
+            posi = self.states[si]
+            for a in range(n_actions):
+                ai = self.action_space[a]
+                probs = self.get_transition_states_and_probs(posi, ai)
+
+                for posj, prob in probs:
+                    sj = self.get_state_val_index(posj)
+                    # Prob of si to sj given action a
+                    prob = int(prob)
+                    if prob == 1:
+                        P_a[si, a] = sj
+                    elif prob != 0:
+                        raise ValueError('not a deterministic environment!')
+        return P_a
+
+    def compute_state_visition_freq(self, P_a, trajs):
+
+        n_states, _, n_actions = np.shape(P_a)
+        optimal_policy, state_features = q_learning(weights, alpha=0.1, gamma=0.9, epsilon=0.2)
+        T = len(trajs[0])
+        # mu[s, t] is the prob of visiting state s at time t
+        mu = np.zeros([n_states, T])
+
+        for traj in trajs:
+            mu[traj[0].cur_state, 0] += 1
+        mu[:, 0] = mu[:, 0] / len(trajs)
+
+        for s in range(n_states):
+            for t in range(T - 1):
+                mu[s, t + 1] = sum([mu[pre_s, t] * P_a[pre_s, s, int(optimal_policy[pre_s])] for pre_s in range(n_states)])
+        p = np.sum(mu, 1)
+        return p
 
 
 def max_action(Q, state_val, action_values):

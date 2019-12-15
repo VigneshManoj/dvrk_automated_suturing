@@ -71,20 +71,35 @@ class MaxEntIRL():
         trajectory_length = 1
         optimal_policy, state_features = q_learning(weights, alpha=0.1, gamma=0.9, epsilon=0.2)
 
-        print "policy in maxent is ", optimal_policy
-        start_state_count = np.zeros(n_states)
-        p_start_state = 0.25**3
-        # print "state state count ", start_state_count
-        # print "n traj ", n_trajectories, trajectory_length
-        # print "start state value ", p_start_state
-        expected_svf = np.tile(p_start_state, (trajectory_length, 1)).T
-        for t in range(1, trajectory_length):
-            expected_svf[:, t] = 0
-            for i, j, k in product(range(n_states), range(n_actions), range(n_states)):
-                expected_svf[k, t] += (expected_svf[i, t - 1] *
-                                       optimal_policy[i, j])
+        """compute the expected states visition frequency p(s| theta, T) 
+        using dynamic programming
 
-        return np.sum(expected_svf)
+        inputs:
+          P_a     NxNxN_ACTIONS matrix - transition dynamics
+          gamma   float - discount factor
+          trajs   list of list of Steps - collected from expert
+          policy  Nx1 vector (or NxN_ACTIONS if deterministic=False) - policy
+
+
+        returns:
+          p       Nx1 vector - state visitation frequencies
+        """
+        N_STATES, _, N_ACTIONS = np.shape(P_a)
+
+        T = len(trajs[0])
+        # mu[s, t] is the prob of visiting state s at time t
+        mu = np.zeros([N_STATES, T])
+
+        for traj in trajs:
+            mu[traj[0].cur_state, 0] += 1
+        mu[:, 0] = mu[:, 0] / len(trajs)
+
+        for s in range(N_STATES):
+            for t in range(T - 1):
+                mu[s, t + 1] = sum(
+                    [mu[pre_s, t] * P_a[pre_s, s, int(optimal_policy[pre_s])] for pre_s in range(N_STATES)])
+        p = np.sum(mu, 1)
+        return p
 
     def find_svf(self, n_states, weights):
         svf = np.zeros(n_states)
