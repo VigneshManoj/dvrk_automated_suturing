@@ -6,26 +6,23 @@ from policy_iteration import q_learning
 
 
 # class MaxEntIRL(RobotStateUtils):
-class MaxEntIRL():
+class MaxEntIRL:
 
     def __init__(self, trajectory_length):
         # super(MaxEntIRL, self).__init__(11)
         self.trajectory_length = trajectory_length
 
     # Calculates the reward function weights using the Max Entropy Algorithm
-    def max_ent_irl(self, sum_trajectory_features_array, complete_features_array, discount,
-                             n_trajectories, epochs, learning_rate, n_policy_iter, weights):
+    def max_ent_irl(self, sum_trajectory_features, feature_array_all_trajectories, discount,
+                                    n_trajectories, epochs, learning_rate, n_policy_iter):
         # Finds the total number of states and dimensions of the list of features array
-        n_states, d_states = complete_features_array.shape
-        # Default value for now
-        n_features = 3
-        # print "complete feature", complete_features_array
-        # print "length of action set", len(action_set)
-        # Initialize alpha with random weights based on the dimensionality of the feature space
-        # alpha = rn.uniform(size=(d_states,))
-        # print "alpha is ", alpha
+        _, total_states, d_states = feature_array_all_trajectories.shape
+        n_states = total_states/n_trajectories
+        print "n states and d states ", n_states, d_states
+        # Initialize with random weights based on the dimensionality of the states
+        rand_weights = np.random.rand(1, d_states)
         # Find feature expectations, sum of features of trajectory/number of trajectories
-        feature_expectations = self.find_feature_expectations(sum_trajectory_features_array, n_states)
+        feature_expectations = self.find_feature_expectations(sum_trajectory_features, n_trajectories)
         # Gradient descent on alpha
         for i in range(epochs):
             # print("i: {}".format(i))
@@ -47,13 +44,10 @@ class MaxEntIRL():
 
         return complete_features_array.dot(weights.reshape(n_features, 1)), weights
 
-        # return self.reward
-
-    def find_feature_expectations(self, trajectory_features, n_states):
+    def find_feature_expectations(self, trajectory_features, n_trajectories):
         # Takes the sum of all the expert features as input
-        feature_expectations = trajectory_features
         # Divide by the number of trajectories data available
-        feature_expectations /= n_states
+        feature_expectations = trajectory_features/n_trajectories
         # Return the expert data feature expectations
         return feature_expectations
 

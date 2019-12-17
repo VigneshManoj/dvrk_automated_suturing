@@ -1,12 +1,8 @@
 import numpy as np
-import numba as nb
-import math
 
 
 class RobotMarkovModel:
     def __init__(self):
-        # Commented all this out currently because it was separately created in another function
-        # since it was not being used here
         # Reads the trajectory data from the file
         trajectories1 = np.genfromtxt\
             ("/home/vignesh/PycharmProjects/dvrk_automated_suturing/data/check_data_max_ent_trial4_code1.csv",
@@ -90,7 +86,7 @@ class RobotMarkovModel:
                 end_pos_y = state_trajectory[i, 1]
                 end_pos_z = state_trajectory[i, 2]
 
-                # Calls the rewards function which returns features for that specific set of state values
+                # Calls the features function which returns features for that specific set of state values
                 features = self.features_func(end_pos_x, end_pos_y, end_pos_z)
                 # Creates a list of all the features
                 individual_feature_array.append(features)
@@ -98,7 +94,7 @@ class RobotMarkovModel:
 
             # Calculates the sum of all the trajectory feature values
             feature_array_all_trajectories.append(individual_feature_array)
-        # Returns the array of trajectory features and returns the array of all the features
+        # Returns the array of sum of all trajectory features and returns the array of all the features of a trajectory
         return np.array(sum_trajectory_features), np.array(feature_array_all_trajectories)
 
 if __name__ == '__main__':
