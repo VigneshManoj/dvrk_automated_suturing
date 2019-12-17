@@ -97,11 +97,12 @@ class RobotMarkovModel:
         # Returns the array of sum of all trajectory features and returns the array of all the features of a trajectory
         return np.array(sum_trajectory_features), np.array(feature_array_all_trajectories)
 
+
 if __name__ == '__main__':
     obj = RobotMarkovModel()
     sum_feat, feat_array = obj.generate_trajectories()
     print "sum of features ", sum_feat
     print "features array ", feat_array
-    print "len ", len(feat_array)
+    print "len ", feat_array[0].shape
 
 

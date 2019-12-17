@@ -20,29 +20,19 @@ class MaxEntIRL:
         n_states = total_states/n_trajectories
         print "n states and d states ", n_states, d_states
         # Initialize with random weights based on the dimensionality of the states
-        rand_weights = np.random.rand(1, d_states)
+        weights = np.random.rand(1, d_states)
         # Find feature expectations, sum of features of trajectory/number of trajectories
         feature_expectations = self.find_feature_expectations(sum_trajectory_features, n_trajectories)
         # Gradient descent on alpha
         for i in range(epochs):
-            # print("i: {}".format(i))
             # Multiplies the features with randomized alpha value, size of output Ex: dot(449*2, 2x1)
-            # Not required: self.reward = complete_features_array.dot(alpha)
-            # expected_svf = self.find_expected_svf(complete_features_array, discount, n_trajectories,
-            #                                                           n_policy_iter, weights, n_states)
             optimal_policy, state_features, expected_svf = self.find_expected_svf(weights, discount)
-            # print "shape of features and svf is ", expected_svf
-            # print "features is ", state_space_model_features
-            # grad = feature_expectations - state_space_model_features.dot(expected_svf)
-            # print "---shapes ----- \n", feature_expectations.reshape(2, 1).shape, expected_svf.reshape(2, 1).shape
-            # print "Complete features array shape ", complete_features_array.shape
-            # print "expected svf shape ", expected_svf.shape
-            grad = feature_expectations.reshape(n_features, 1) - (state_features*expected_svf).reshape(n_features, 1)
+            grad = feature_expectations.reshape(d_states, 1) - (state_features*expected_svf).reshape(d_states, 1)
 
             weights += learning_rate * np.transpose(grad)
             print "weights is ", weights
 
-        return complete_features_array.dot(weights.reshape(n_features, 1)), weights
+        return np.dot(feature_array_all_trajectories[0:n_states], (weights.reshape(d_states, 1))), weights
 
     def find_feature_expectations(self, trajectory_features, n_trajectories):
         # Takes the sum of all the expert features as input
@@ -50,12 +40,6 @@ class MaxEntIRL:
         feature_expectations = trajectory_features/n_trajectories
         # Return the expert data feature expectations
         return feature_expectations
-
-    # def find_expected_svf(self, weights, discount):
-    #     optimal_policy, state_features, expected_svf = q_learning(weights=weights, alpha=0.1,
-    #                                                               gamma=discount, epsilon=0.2)
-    #
-    #     return optimal_policy, state_features, expected_svf
 
     def find_expected_svf(self, weights, discount):
         optimal_policy, state_features, expected_svf = q_learning(weights=weights, alpha=0.1,

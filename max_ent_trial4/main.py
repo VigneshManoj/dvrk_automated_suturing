@@ -14,11 +14,12 @@ def main(discount, epochs, learning_rate, n_policy_iter):
     # Initialize the IRL class object, provide trajectory length as input, currently its value is 1
     irl = MaxEntIRL(n_trajectories)
     # Calculates the reward function based on the Max Entropy IRL algorithm
-    reward, alpha = irl.max_ent_irl(sum_trajectory_features, feature_array_all_trajectories, discount,
+    reward, weights = irl.max_ent_irl(sum_trajectory_features, feature_array_all_trajectories, discount,
                                     n_trajectories, epochs, learning_rate, n_policy_iter)
 
     # print "r is ", reward
-    # print "alpha is ", alpha
+    # print "r shape ", reward.shape
+    # print "alpha is ", weights
     # print "policy is ", policy[0][0]
 
 if __name__ == '__main__':

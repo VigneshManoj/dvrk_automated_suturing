@@ -182,8 +182,8 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         # state values. These values are repeatedly added until the length of trajectory
         n = len(state_trajectory)
         # print "n is ", n
-        # print "state traj is ", state_trajectory
-        # print "state traj is ", state_trajectory[0][0]
+        # print "state trajectory is ", state_trajectory
+        # print "state trajectory is ", state_trajectory[0][0]
         sum_trajectories_features = []
         trajectory_features = np.zeros([3, 1], dtype='float32')
         for i in range(0, n):
