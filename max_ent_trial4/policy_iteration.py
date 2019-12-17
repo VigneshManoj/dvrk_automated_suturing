@@ -89,7 +89,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         else:
             # If there are no issues with the new state value then return false, negation is present on the other end
             return False
-
+    '''
     def reward_func(self, end_pos_x, end_pos_y, end_pos_z, alpha):
         # Creates list of all the features being considered
         features = [self.features_array_prim_func, self.features_array_sec_func, self.features_array_tert_func]
@@ -112,7 +112,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
             reward = -1
 
         return reward, 1, 2
-    '''
+
 
     # Created feature set1 which basically takes the exponential of sum of individually squared value
     def features_array_prim_func(self, end_pos_x, end_pos_y, end_pos_z):
@@ -222,19 +222,18 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
 
         n_states = self.grid_size**3
         n_actions = len(self.action_space)
-        P_a = np.zeros((n_states, n_actions), dtype=np.int32)
+        P_a = np.zeros((n_states, n_actions, n_states), dtype=np.int32)
         for si in range(n_states):
             for a in range(n_actions):
                 probs = self.get_transition_states_and_probs(si, a)
 
                 for posj, prob in probs:
+                    # sj = self.get_state_val_index(posj)
+                    sj = int(posj)
                     # Prob of si to sj given action a
                     prob = int(prob)
-                    if prob == 1:
-                        P_a[si, a] = posj
-                    elif prob != 0:
-                        raise ValueError('not a deterministic environment!')
-        return P_a
+                    P_a[si, a, sj] = prob
+        return P_a, self.states[0], self.action_space[14], self.states[1]
 
     def compute_state_visition_freq(self, trajs, optimal_policy):
         P_a = self.get_transition_mat_deterministic()
@@ -247,7 +246,6 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         # print "trajs is ", trajs
         mu[0, 0] = 1
         mu[:, 0] = mu[:, 0] / len(trajs)
-
         for s in range(n_states):
             for t in range(T-1):
                 print "P_a is ", [P_a[pre_s, int(optimal_policy[pre_s])] for pre_s in range(n_states)]
@@ -381,8 +379,13 @@ if __name__ == '__main__':
     env_obj = RobotStateUtils(11, weights)
     states = env_obj.create_state_space_model_func()
     action = env_obj.create_action_set_func()
-    # print "State space created is ", states
-
+    # print "State space created is ", states.
+    P_a, s, a, s1 = env_obj.get_transition_mat_deterministic()
+    print "P_a is ", P_a
+    print "shape of P_a ", P_a.shape
+    print "specifc P_a ", P_a[0, 14, 1], s, s1
+    print "actions", a
+    '''
     # x = [-0.5, 0.2, 0.4]
     # row_column = obj_state_util.get_state_val_index(x)
     # print "index val", row_column, x
@@ -404,22 +407,7 @@ if __name__ == '__main__':
     # print "prob shape is ", P_a.shape
     # print "prob value is ", P_a[0]
     print "Expected svf is ", expected_svf
-
-
-'''
-
-# obj_mdp = RobotMarkovModel()
-# rand_weights = np.random.rand(1, 3)
-# print rand_weights.shape
-# weights = np.array([[1, 1, 0]])
-# print weights.shape
-# reward, features, n_features = obj_mdp.reward_func(r[0], r[1], r[2], weights)
-# print reward
-# print features
-#
-# reward_trial = np.ones(len(states))
-# valuefunc = obj_state_util.calc_value_func(reward_trial, 0.01, 1e-2)
-# print "value function is ", valuefunc
+    '''
 
 
 
@@ -438,149 +426,4 @@ if __name__ == '__main__':
 
 
 
-
-
-
-# def get_model_indices(self, state_val):
-#     # Since everything is saved in a linear flattened form
-#     # Provides the z, y, x value of the current position based on the integer location value provided
-#     z = round(state_val % self.grid_size)
-#     y = round((state_val / self.grid_size) % self.grid_size)
-#     # x = round((self.current_pos-(self.current_pos // self.grid_size)) % self.grid_size)
-#     x = round((state_val / (self.grid_size * self.grid_size)) % self.grid_size)
-#     # Returns the actual value by dividing it by 10 (which is the scale of integer position and state values)
-#
-#     return [x/float(10), y/float(10), z/float(10)]
-
-def neighbouring(self, i, k):
-
-    return abs(i[0] - k[0]) + abs(i[1] - k[1]) + abs(i[2] - k[2]) <= 1
-
-def transition_probability(self, i, j, k):
-
-    si, sj, sk = self.states[i]
-    ai, aj, ak = self.action_space[j]
-    s_ni, s_nj, s_nk = self.states[k]
-
-    if not self.neighbouring((si, sj, sk), (s_ni, s_nj, s_nk)):
-        return 0.0
-
-    # Is k the intended state to move to?
-    if (si + ai, sj + aj, sk + ak) == (s_ni, s_nj, s_nk):
-        return 1
-
-    # If these are the same point, we can only move here by either moving
-    # off the grid or being blown off the grid. Are we on a corner or not?
-    if (si, sj, sk) in {(0, 0, 0), (self.grid_size-1, self.grid_size-1, self.grid_size-1),
-                        (0, self.grid_size-1, 0), (self.grid_size-1, 0, 0), (0, 0, self.grid_size-1)}:
-        # Corner.
-        # Can move off the edge in two directions.
-        # Did we intend to move off the grid?
-        if not (0 <= si + ai < self.grid_size and
-                0 <= sj + aj < self.grid_size and
-                0 <= sk + ak < self.grid_size):
-
-            return 1
-    else:
-        # Not a corner. Is it an edge?
-        if (si not in {0, self.grid_size-1} and
-            sj not in {0, self.grid_size-1} and
-            sk not in {0, self.grid_size-1}):
-            # Not an edge.
-            return 0.0
-
-        # Edge.
-        # Can only move off the edge in one direction.
-        # Did we intend to move off the grid?
-        if not (0 <= si + ai < self.grid_size and
-                0 <= sj + aj < self.grid_size and
-                0 <= sk + ak < self.grid_size):
-            # We intended to move off the grid, so we have the regular
-            # success chance of staying here.
-            return 1
-        else:
-            # We can blow off the grid only by wind.
-            return 0
-
-def calc_value_func(self, reward, discount, threshold):
-    n_states = len(self.states)
-    n_actions = len(self.action_space)
-    v = np.zeros(n_states)
-
-    diff = float("inf")
-    while diff > threshold:
-        diff = 0
-        for s in range(n_states):
-            print "states is", s
-            max_v = float("-inf")
-            for a in range(n_actions):
-
-                # print "action is ", a
-                 #print "max v is ", max_v
-                # print "reward + vdiscount ", tp.flatten().shape, reward.shape, v.shape, discount
-                max_v = max(max_v, np.dot(self.transition_probability(s, a, s1), reward + discount * v) for s1 in range(n_states))
-
-            new_diff = abs(v[s] - max_v)
-            if new_diff > diff:
-                diff = new_diff
-            v[s] = max_v
-
-    return v
-
-def find_policy(self, n_states, n_actions, reward, discount,
-                threshold=1e-2, v=None):
-
-    if v is None:
-        v = self.calc_value_func(reward, discount, threshold)
-    def policy(s):
-        return max(range(n_actions),
-                   key=lambda a: sum((reward[k] + discount * v[k]) for k in range(n_states)))
-
-    policy = np.array([policy(s) for s in range(n_states)])
-    return policy
-
-def generate_trajectories(self, n_trajectories, trajectory_length, policy, random_start=True):
-
-    trajectories = []
-    for _ in range(n_trajectories):
-        if random_start:
-            sx, sy, sz = rn.randint(self.grid_size), rn.randint(self.grid_size), rn.randint(self.grid_size)
-            print "Randomly assigned states are ", sx, sy, sz
-
-        else:
-            sx, sy, sz = 0, 0, 0
-
-        trajectory = []
-        for _ in range(trajectory_length):
-            # Follow the given policy.
-            print "states are ", sx, sy, sz
-            print "Policy ", self.get_state_val_index([sx, sy, sz])
-            print "Ended "
-            action = self.actions[policy(self.get_state_val_index([sx, sy, sz]))]
-
-            if (0 <= sx + action[0] < self.grid_size and 0 <= sy + action[1] < self.grid_size
-                    and 0 <= sz + action[2] < self.grid_size):
-                next_sx = sx + action[0]
-                next_sy = sy + action[1]
-                next_sz = sz + action[2]
-            else:
-                next_sx = sx
-                next_sy = sy
-                next_sz = sz
-
-            state_int = self.point_to_int((sx, sy, sz))
-            # print "action is ", action
-            action_int = self.actions.index(action)
-            next_state_int = self.point_to_int((next_sx, next_sy, next_sz))
-            reward = self.reward(next_state_int)
-            trajectory.append((state_int, action_int, reward))
-
-            sx = next_sx
-            sy = next_sy
-            sz = next_sz
-
-        trajectories.append(trajectory)
-
-    return np.array(trajectories)
-'''
 
