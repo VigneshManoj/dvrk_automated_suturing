@@ -178,31 +178,6 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         # Created the feature function assuming everything has importance, so therefore added each parameter value
         return features_arr
 
-    def sum_of_features(self, state_trajectory):
-        # Creates the array of features and rewards for the whole trajectory
-        # It calls the RobotMarkovModel class reward function which returns the reward and features for that specific
-        # state values. These values are repeatedly added until the length of trajectory
-        n = len(state_trajectory)
-        # print "n is ", n
-        # print "state trajectory is ", state_trajectory
-        # print "state trajectory is ", state_trajectory[0][0]
-        sum_trajectories_features = []
-        trajectory_features = np.zeros([3, 1], dtype='float32')
-        for i in range(0, n):
-            # Reads only the state trajectory data and assigns the variables value of the first set of state values
-            end_pos_x = state_trajectory[i][0]
-            end_pos_y = state_trajectory[i][1]
-            end_pos_z = state_trajectory[i][2]
-
-            # Calls the rewards function which returns features for that specific set of state values
-            features = self.features_func(end_pos_x, end_pos_y, end_pos_z)
-            # Creates a list of all the features
-            trajectory_features = trajectory_features + np.vstack((features[0], features[1], features[2]))
-        # Calculates the sum of all the trajectory feature values
-        sum_trajectories_features.append(trajectory_features)
-        # Returns the array of trajectory features and returns the array of all the features
-        return np.array(sum_trajectories_features)
-
     def get_transition_states_and_probs(self, curr_state, action):
 
         if self.is_terminal_state(curr_state):
@@ -238,12 +213,15 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         return P_a
 
     def value_iteration(self, P_a, rewards, gamma, error=1):
+        # Number of states in the state space and number of actions
         n_states, n_actions, _ = np.shape(P_a)
-
+        # Initialize the value function
         values = np.zeros([n_states])
 
         # estimate values
         while True:
+            # Temporary copy to check find the difference between new value function calculated and the current value function
+            # to ensure improvement in value
             values_tmp = values.copy()
 
             for s in range(n_states):
@@ -267,113 +245,22 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
     def compute_state_visition_frequency(self, P_a, trajectories, optimal_policy):
         n_states, n_actions, _ = np.shape(P_a)
         n_trajectories, total_states, d_states = trajectories.shape
-        T = n_trajectories
+        T = total_states
         # mu[s, t] is the prob of visiting state s at time t
         mu = np.zeros([n_states, T])
         # print "mu is ", mu
         # print "mu shape ", mu.shape
         for trajectory in trajectories:
-            # print "traj is ", trajectory
-            mu[0] += 1
-        mu[:, 0] = mu[:, 0] / len(trajectories)
+            # print "trajectory is ", trajectory
+            mu[int(trajectory[0, 0]), 0] += 1
+        mu[:, 0] = mu[:, 0] / n_trajectories
 
         for s in range(n_states):
             for t in range(T - 1):
-                # print "P_a shape ", optimal_policy[185]
-                # print "P_a is ", [P_a[pre_s, s, int(optimal_policy[pre_s])] for pre_s in range(n_states)]
+                # Computes the mu value for each state once the optimal action is taken
                 mu[s, t + 1] = sum([mu[pre_s, t] * P_a[pre_s, int(optimal_policy[pre_s]), s] for pre_s in range(n_states)])
         p = np.sum(mu, 1)
         return p
-
-
-def max_action(Q, state_val, action_values):
-    # print "max action action val ", action_values
-    q_values = np.array([Q[state_val, a] for a in action_values])
-    # print "values in max action is ", q_values
-    action = np.argmax(q_values)
-    # print "---max action function action ", action
-    # print "max q value ", q_values[action]
-    return action_values[action]
-
-# def q_learning(env_obj, alpha, gamma, epsilon):
-def q_learning(env_obj, weights, alpha, gamma, epsilon):
-
-    # env_obj = RobotStateUtils(11, weights)
-    # states = env_obj.create_state_space_model_func()
-    # action = env_obj.create_action_set_func()
-    print "State space created is ", states
-    Q = {}
-    num_games = 50
-    total_rewards = np.zeros(num_games)
-    policy = {}
-    state_trajectories = {}
-    # Default value
-    most_reward_index = 0
-    sum_state_trajectory = 0
-    expected_svf = np.zeros(len(env_obj.states))
-    # print "obj state ", env_obj.states.keys()
-    # print "obj action ", env_obj.action_space.keys()
-
-    for state in env_obj.states.keys():
-        for action in env_obj.action_space.keys():
-            Q[state, action] = 0
-
-    for i in range(num_games):
-        if i % 5 == 0:
-            print('-------------starting game-------------- ', i)
-        done = False
-        ep_rewards = 0
-        episode_policy = []
-        state_trajectory = []
-        observation = env_obj.reset()
-        # observation = 0
-
-        while not done:
-            rand = np.random.random()
-            # print "random val is ", rand
-            # print "----------------------------------------------------------------------------"
-            # print "Starting state val inside loop ", observation
-            # print "action val inside loop", env_obj.action_space.keys()
-            action = max_action(Q, observation, env_obj.action_space.keys()) if rand < (1 - epsilon) \
-                else env_obj.action_space_sample()
-            observation_, reward, done, info = env_obj.step(observation, action)
-            ep_rewards += reward
-            next_observation_index = env_obj.get_state_val_index(observation_)
-            # print "Next obs index", next_observation_index
-            action_ = max_action(Q, next_observation_index, env_obj.action_space.keys())
-             #print "current action val is ", action
-            # print "next action val is ", action_
-            # print "reward is ", reward
-
-            Q[observation, action] = Q[observation, action] + \
-                                     alpha * (reward + gamma * Q[next_observation_index, action_] -
-                                              Q[observation, action])
-            print "Q value in loop", Q[observation, action]
-            episode_policy.append(np.exp(Q[observation, action]))
-            # misc_val = Q[observation, action]
-            # print "misc val1 ", Q[observation, action]
-            # print "misc val2 ", alpha * (reward + gamma * Q[next_observation_index, action_] -
-                                                                       # Q[observation, action])
-            observation = next_observation_index
-            # print "state value after assigning to new state", observation
-            state_trajectory.append(env_obj.states[observation])
-        if epsilon - 2 / num_games > 0:
-            epsilon -= 2 / num_games
-        else:
-            epsilon = 0
-        total_rewards[i] = ep_rewards
-        # policy[i] = episode_policy
-        most_reward_index = np.argmax(total_rewards)
-        policy_dict = {i: episode_policy}
-        policy.update(policy_dict)
-        state_dict = {i: state_trajectory}
-        state_trajectories.update(state_dict)
-        sum_state_trajectory = env_obj.sum_of_features(state_trajectories[most_reward_index])
-    # expected_svf = env_obj.compute_state_visition_freq(state_trajectories, policy[most_reward_index])
-    # return policy[most_reward_index], sum_state_trajectory
-    return policy[most_reward_index], sum_state_trajectory, expected_svf
-
-
 
 
 if __name__ == '__main__':
@@ -393,14 +280,15 @@ if __name__ == '__main__':
         r = env_obj.reward_func(states[i][0], states[i][1], states[i][2], weights)
         rewards.append(r)
     # print "rewards is ", rewards
-    value, policy = env_obj.value_iteration(P_a, rewards, gamma=0.9)
-    # policy = np.random.randint(27, size=1331)
+    # value, policy = env_obj.value_iteration(P_a, rewards, gamma=0.9)
+    policy = np.random.randint(27, size=1331)
     print "policy is ", policy
     robot_mdp = RobotMarkovModel()
     # Finds the sum of features of the expert trajectory and list of all the features of the expert trajectory
     sum_trajectory_features, feature_array_all_trajectories = robot_mdp.generate_trajectories()
     svf = env_obj.compute_state_visition_frequency(P_a, feature_array_all_trajectories, policy)
     print "svf is ", svf
+    print "svf shape is ", svf.shape
     '''
     # x = [-0.5, 0.2, 0.4]
     # row_column = obj_state_util.get_state_val_index(x)
