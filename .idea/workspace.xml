@@ -5,7 +5,6 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/max_ent_trial4/max_ent_irl.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial4/max_ent_irl.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/max_ent_trial4/robot_markov_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial4/robot_markov_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/max_ent_trial4/robot_state_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial4/robot_state_utils.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />

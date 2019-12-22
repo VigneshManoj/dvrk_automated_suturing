@@ -19,7 +19,6 @@ class MaxEntIRL:
         # Finds the total number of states and dimensions of the list of features array
         total_states = len(feature_array_all_trajectories[0])
         d_states = len(feature_array_all_trajectories[0][0])
-        n_states = total_states/n_trajectories
         # print "n states and d states ", n_states, d_states
         # Initialize with random weights based on the dimensionality of the states
         weights = np.random.rand(1, d_states)
@@ -27,6 +26,7 @@ class MaxEntIRL:
         feature_expectations = self.find_feature_expectations(sum_trajectory_features, n_trajectories)
         # Gradient descent on alpha
         for i in range(epochs):
+            print "Epoch running is ", i
             # Multiplies the features with randomized alpha value, size of output Ex: dot(449*2, 2x1)
             optimal_policy, state_features, expected_svf = self.find_expected_svf(weights, discount)
             grad = feature_expectations.reshape(d_states, 1) - state_features.dot(expected_svf).reshape(d_states, 1)
@@ -34,7 +34,7 @@ class MaxEntIRL:
             weights += learning_rate * np.transpose(grad)
             print "weights is ", weights
         # Compute the reward of the trajectory based on the weights value calculated
-        trajectory_reward = np.dot(feature_array_all_trajectories[0:n_states], (weights.reshape(d_states, 1)))
+        trajectory_reward = np.dot(feature_array_all_trajectories[0][0:total_states], (weights.reshape(d_states, 1)))
 
         return trajectory_reward, weights
 

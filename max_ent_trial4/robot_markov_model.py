@@ -109,21 +109,22 @@ class RobotMarkovModel:
 if __name__ == '__main__':
     obj = RobotMarkovModel()
     s, a = obj.return_trajectories_data()
-    # print "states is ", s
+    print "states is ", s
     # print "len state s", len(s[0])
     sum_feat, feat_array = obj.generate_trajectories()
     # print "sum of features ", sum_feat
-    # print "features array ", feat_array
-    # print "len ", len(feat_array[0][0])
     total_states = len(feat_array[0])
+    print "features array ", len(s[0][0:total_states])
+    # print "len ", len(feat_array[0][0])
     d_states = len(feat_array[0][0])
     T = total_states
+    # print "total state is ", total_states
     # mu[s, t] is the prob of visiting state s at time t
     mu = np.zeros([1331, T])
     for trajectory in s:
-        print "traj is ", trajectory
+        # print "traj is ", trajectory
         ind = obj.get_state_val_index(trajectory[0])
-        print "ind is ", ind
+        # print "ind is ", ind
         mu[int(ind), 0] += 1
-    print "mu is ", mu
+    # print "mu is ", mu
 
