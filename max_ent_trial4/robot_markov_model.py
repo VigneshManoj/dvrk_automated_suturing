@@ -104,9 +104,11 @@ class RobotMarkovModel:
 
 if __name__ == '__main__':
     obj = RobotMarkovModel()
+    s, a = obj.trajectories_data()
+    print "states is ", s
+    print "len state s", len(s[0])
     sum_feat, feat_array = obj.generate_trajectories()
     print "sum of features ", sum_feat
-    print "features array ", feat_array.shape
-    # print "len ", feat_array.shape
-
+    print "features array ", feat_array
+    print "len ", len(feat_array[0][0])
 

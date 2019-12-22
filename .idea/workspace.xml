@@ -3,7 +3,14 @@
   <component name="ChangeListManager">
     <list default="true" id="71a93876-613e-4815-b918-977607d6172a" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/max_ent_trial4/policy_iteration.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial4/policy_iteration.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/check_data_max_ent_trial4_code1.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/check_data_max_ent_trial4_code1.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/check_data_max_ent_trial4_code2.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/check_data_max_ent_trial4_code2.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/check_data_max_ent_trial4_code3.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/check_data_max_ent_trial4_code3.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/max_ent_trial4/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial4/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/max_ent_trial4/max_ent_irl.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial4/max_ent_irl.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/max_ent_trial4/policy_iteration.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/max_ent_trial4/robot_markov_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial4/robot_markov_model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/max_ent_trial4/robot_state_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial4/robot_state_utils.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
