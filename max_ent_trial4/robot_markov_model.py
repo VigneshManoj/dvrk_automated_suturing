@@ -27,7 +27,7 @@ class RobotMarkovModel:
         # Initialize the actions possible
         self.action_set = []
     # Returns the state and action array of expert trajectory
-    def trajectories_data(self):
+    def return_trajectories_data(self):
         # Return trajectories data if any function requires it outside this class
         return self.state_trajectories, self.action_trajectories
 
@@ -71,6 +71,10 @@ class RobotMarkovModel:
         # Created the feature function assuming everything has importance, so therefore added each parameter value
         return features_arr
 
+    def get_state_val_index(self, state_val):
+        index_val = abs((state_val[0] + 0.5) * pow(11, 2)) + abs((state_val[1] + 0.5) * pow(11, 1)) + \
+                    abs((state_val[2] + 0.5))
+        return round(index_val*(10))
 
     def generate_trajectories(self):
         # Creates the array of features and rewards for the whole trajectory
@@ -104,11 +108,22 @@ class RobotMarkovModel:
 
 if __name__ == '__main__':
     obj = RobotMarkovModel()
-    s, a = obj.trajectories_data()
-    print "states is ", s
-    print "len state s", len(s[0])
+    s, a = obj.return_trajectories_data()
+    # print "states is ", s
+    # print "len state s", len(s[0])
     sum_feat, feat_array = obj.generate_trajectories()
-    print "sum of features ", sum_feat
-    print "features array ", feat_array
-    print "len ", len(feat_array[0][0])
+    # print "sum of features ", sum_feat
+    # print "features array ", feat_array
+    # print "len ", len(feat_array[0][0])
+    total_states = len(feat_array[0])
+    d_states = len(feat_array[0][0])
+    T = total_states
+    # mu[s, t] is the prob of visiting state s at time t
+    mu = np.zeros([1331, T])
+    for trajectory in s:
+        print "traj is ", trajectory
+        ind = obj.get_state_val_index(trajectory[0])
+        print "ind is ", ind
+        mu[int(ind), 0] += 1
+    print "mu is ", mu
 

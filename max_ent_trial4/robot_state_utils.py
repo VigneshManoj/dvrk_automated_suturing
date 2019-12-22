@@ -244,7 +244,9 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
 
     def compute_state_visition_frequency(self, P_a, trajectories, optimal_policy):
         n_states, n_actions, _ = np.shape(P_a)
-        n_trajectories, total_states, d_states = trajectories.shape
+        n_trajectories = len(trajectories)
+        total_states = len(trajectories[0])
+        d_states = len(trajectories[0][0])
         T = total_states
         # mu[s, t] is the prob of visiting state s at time t
         mu = np.zeros([n_states, T])
@@ -252,7 +254,10 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         # print "mu shape ", mu.shape
         for trajectory in trajectories:
             # print "trajectory is ", trajectory
-            mu[int(trajectory[0, 0]), 0] += 1
+            # To get the values of the trajectory in the state space created
+            trajectory_index = self.get_state_val_index(trajectory[0])
+            # int is added because the index returned is float and the index value for array has to be integer
+            mu[int(trajectory_index), 0] += 1
         mu[:, 0] = mu[:, 0] / n_trajectories
 
         for s in range(n_states):

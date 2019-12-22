@@ -68,8 +68,8 @@ class MaxEntIRL:
         print "policy is ", policy
         robot_mdp = RobotMarkovModel()
         # Finds the sum of features of the expert trajectory and list of all the features of the expert trajectory
-        sum_trajectory_features, feature_array_all_trajectories = robot_mdp.generate_trajectories()
-        expected_svf = env_obj.compute_state_visition_frequency(P_a, feature_array_all_trajectories, policy)
+        expert_trajectory_states, _ = robot_mdp.return_trajectories_data()
+        expected_svf = env_obj.compute_state_visition_frequency(P_a, expert_trajectory_states, policy)
         # Formats the features array in a way that it can be multiplied with the svf values
         state_features = np.array([state_features]).transpose().reshape((len(state_features[0]), len(state_features)))
         print "svf is ", expected_svf
