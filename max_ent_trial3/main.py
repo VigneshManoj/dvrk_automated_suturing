@@ -3,33 +3,25 @@ import matplotlib.pyplot as plt
 from robot_markov_model import RobotMarkovModel
 from max_ent_irl import MaxEntIRL
 
-def main(discount, epochs, learning_rate, weights, trajectory_length, n_policy_iter):
+def main(discount, epochs, learning_rate):
     # Creates an object for using the RobotMarkovModel class
     robot_mdp = RobotMarkovModel()
-    # Initialize the IRL class object, provide trajectory length as input, currently its value is 1
-    irl = MaxEntIRL(trajectory_length)
-
-    # trajectory_features_array, trajectory_rewards_array = robot_mdp.trajectories_features_rewards_array(weights)
     # Finds the sum of features of the expert trajectory and list of all the features of the expert trajectory
-    trajectory_features_array, complete_features_array = robot_mdp.trajectories_features_array()
-    # print "traj array ", trajectory_features_array.shape, trajectory_features_array
-    # print "complete array ", complete_features_array.shape, complete_features_array
-    # print trajectory_rewards_array
-    # print model_rot_par_r
-    # Returns the state and actions spaces of the expert trajectory
-    state_trajectory_array, action_trajectory_array = robot_mdp.trajectories_data()
+    sum_trajectory_features, feature_array_all_trajectories = robot_mdp.generate_trajectories()
     # Finds the length of the trajectories data
-    n_trajectories = len(state_trajectory_array)
+    n_trajectories = len(feature_array_all_trajectories)
+    # Initialize the IRL class object, provide trajectory length as input, currently its value is 1
+    irl = MaxEntIRL(n_trajectories)
     # Calculates the reward function based on the Max Entropy IRL algorithm
-    reward = irl.max_ent_irl(trajectory_features_array, complete_features_array, discount,
-                             n_trajectories, epochs, learning_rate, n_policy_iter)
+    reward, weights = irl.max_ent_irl(sum_trajectory_features, feature_array_all_trajectories, discount,
+                                    n_trajectories, epochs, learning_rate)
 
-    print "r is ", reward, len(reward)
+    print "r is ", reward
+    # print "r shape ", reward.shape
+    print "weights is ", weights
+    # print "policy is ", policy[0][0]
 
 if __name__ == '__main__':
-    rand_weights = np.random.rand(1, 2)
-    # The different kind of trajectories present in the user study
-    trajectory_length = 1
     # The number of times policy iteration needs to be run
     n_policy_iter = 3
-    main(0.01, 200, 0.01, rand_weights, trajectory_length, n_policy_iter)
+    main(discount=0.9, epochs=200, learning_rate=0.01)
