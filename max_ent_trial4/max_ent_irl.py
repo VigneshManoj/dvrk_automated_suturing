@@ -1,12 +1,10 @@
 import numpy as np
 import numpy.random as rn
 import math
-from itertools import product
 from robot_markov_model import RobotMarkovModel
 from robot_state_utils import RobotStateUtils
 
 
-# class MaxEntIRL(RobotStateUtils):
 class MaxEntIRL:
 
     def __init__(self, trajectory_length):
@@ -14,8 +12,8 @@ class MaxEntIRL:
         self.trajectory_length = trajectory_length
 
     # Calculates the reward function weights using the Max Entropy Algorithm
-    def max_ent_irl(self, sum_trajectory_features, feature_array_all_trajectories, discount,
-                                    n_trajectories, epochs, learning_rate):
+    def max_ent_irl(self, grid_size, sum_trajectory_features, feature_array_all_trajectories, discount,
+                    n_trajectories, epochs, learning_rate):
         # Finds the total number of states and dimensions of the list of features array
         total_states = len(feature_array_all_trajectories[0])
         d_states = len(feature_array_all_trajectories[0][0])
@@ -28,7 +26,8 @@ class MaxEntIRL:
         for i in range(epochs):
             print "Epoch running is ", i
             # Multiplies the features with randomized alpha value, size of output Ex: dot(449*2, 2x1)
-            optimal_policy, state_features, expected_svf = self.find_expected_svf(weights, discount)
+            optimal_policy, state_features, expected_svf = self.find_expected_svf(grid_size, weights, discount,
+                                                                                  total_states)
             grad = feature_expectations.reshape(d_states, 1) - state_features.dot(expected_svf).reshape(d_states, 1)
 
             weights += learning_rate * np.transpose(grad)
@@ -45,16 +44,23 @@ class MaxEntIRL:
         # Return the expert data feature expectations
         return feature_expectations
 
-    def find_expected_svf(self, weights, discount):
-        # Robot Object called
+    def find_expected_svf(self, grid_size, weights, discount, total_states):
+        # Creates object of robot markov model
+        robot_mdp = RobotMarkovModel()
+        # Returns the state and action values of the state space being created
+        state_values_from_trajectory, _ = robot_mdp.return_trajectories_data()
+        # Finds the terminal state value from the expert trajectory
+        # 0 indicates that the first trajectory data is being used
+        # total_states indicates that the last value of that trajectory data should be used as terminal state
+        terminal_state_val_from_trajectory = state_values_from_trajectory[0][total_states-1]
         # Pass the gridsize required
-        env_obj = RobotStateUtils(11, weights)
+        # To create the state space model, we need to run the below commands
+        env_obj = RobotStateUtils(grid_size, weights, terminal_state_val_from_trajectory)
         states = env_obj.create_state_space_model_func()
         action = env_obj.create_action_set_func()
         # print "State space created is ", states
         P_a = env_obj.get_transition_mat_deterministic()
         # print "P_a is ", P_a
-        # print "shape of P_a ", P_a.shape
         # Calculates the reward and feature for the trajectories being created in the state space
         rewards = []
         state_features = []
@@ -66,10 +72,9 @@ class MaxEntIRL:
         value, policy = env_obj.value_iteration(P_a, rewards, gamma=discount)
         # policy = np.random.randint(27, size=1331)
         print "policy is ", policy
-        robot_mdp = RobotMarkovModel()
         # Finds the sum of features of the expert trajectory and list of all the features of the expert trajectory
         expert_trajectory_states, _ = robot_mdp.return_trajectories_data()
-        expected_svf = env_obj.compute_state_visition_frequency(P_a, expert_trajectory_states, policy)
+        expected_svf = env_obj.compute_state_visitation_frequency(P_a, expert_trajectory_states, policy)
         # Formats the features array in a way that it can be multiplied with the svf values
         state_features = np.array([state_features]).transpose().reshape((len(state_features[0]), len(state_features)))
         print "svf is ", expected_svf

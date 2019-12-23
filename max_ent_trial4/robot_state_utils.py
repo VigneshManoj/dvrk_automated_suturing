@@ -7,7 +7,7 @@ import numpy.random as rn
 
 
 class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
-    def __init__(self, grid_size, weights):
+    def __init__(self, grid_size, weights, terminal_state_val_from_trajectory):
         super(RobotStateUtils, self).__init__(max_workers=8)
         # Model here means the 3D cube being created
         # linspace limit values: limit_values_pos = [[-0.009, -0.003], [0.003, 007], [-0.014, -0.008]]
@@ -24,11 +24,15 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         # Numerical values assigned to each action in the dictionary
         self.possible_actions = [i for i in range(27)]
         # Total Number of states defining the state of the robot
-        self.n_states = 3
-        # self.current_pos = 1000
-        self.terminal_state_val = 25
+        self.n_params_for_state = 3
+        # The terminal state value which is taken from the expert trajectory data
+        self.terminal_state_val = terminal_state_val_from_trajectory
         self.weights = weights
+        # Deterministic or stochastic transition environment
         self.trans_prob = 1
+        # Initialize number of states and actions in the state space model created
+        self.n_states = 0
+        self.n_actions = 0
 
     def create_state_space_model_func(self):
         # Creates the state space of the robot based on the values initialized for linspace by the user
@@ -67,9 +71,10 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
 
     def is_terminal_state(self, state):
 
-        # because terminal state is being given in index val
-        if state == self.terminal_state_val:
-        # If terminal state is being given as a list then if state == self.terminal_state_val:
+        # because terminal state is being given in array value and needs to convert to index value
+        terminal_state_val_index = self.get_state_val_index(self.terminal_state_val)
+        if state == terminal_state_val_index:
+            # If terminal state is being given as a list then if state == self.terminal_state_val:
             # print "You have reached the terminal state "
             return True
         else:
@@ -146,15 +151,14 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         # print "current state", self.states[curr_state]
         # print "action taken", action, self.action_space[action]
         # Finds the resulting state when the action is taken at curr_state
-        for i in range(0, self.n_states):
+        for i in range(0, self.n_params_for_state):
             resulting_state.append(round(self.states[curr_state][i] + self.action_space[action][i], 1))
 
         # print "resulting state is ", resulting_state
         # Calculates the reward and returns the reward value, features value and
         # number of features based on the features provided
-        reward, features_arr = self.reward_func(resulting_state[0],
-                                                              resulting_state[1],
-                                                              resulting_state[2], self.weights)
+        reward, features_arr = self.reward_func(resulting_state[0], resulting_state[1], resulting_state[2],
+                                                self.weights)
         # print "reward is ", reward
         # Checks if the resulting state is moving it out of the grid
         resulting_state_index = self.get_state_val_index(resulting_state)
@@ -184,7 +188,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
             return [(curr_state, 1)]
         resulting_state = []
         if self.trans_prob == 1:
-            for i in range(0, self.n_states):
+            for i in range(0, self.n_params_for_state):
                 resulting_state.append(round(self.states[curr_state][i] + self.action_space[action][i], 1))
             resulting_state_index = self.get_state_val_index(resulting_state)
 
@@ -197,61 +201,56 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
 
     def get_transition_mat_deterministic(self):
 
-        n_states = self.grid_size**3
-        n_actions = len(self.action_space)
-        P_a = np.zeros((n_states, n_actions, n_states), dtype=np.int32)
-        for si in range(n_states):
-            for a in range(n_actions):
-                probs = self.get_transition_states_and_probs(si, a)
+        self.n_states = self.grid_size**3
+        self.n_actions = len(self.action_space)
+        P_a = np.zeros((self.n_states, self.n_actions, self.n_states), dtype=np.int32)
+        for si in range(self.n_states):
+            for a in range(self.n_actions):
+                probabilities = self.get_transition_states_and_probs(si, a)
 
-                for posj, prob in probs:
+                for next_pos, prob in probabilities:
                     # sj = self.get_state_val_index(posj)
-                    sj = int(posj)
+                    sj = int(next_pos)
                     # Prob of si to sj given action a
                     prob = int(prob)
                     P_a[si, a, sj] = prob
         return P_a
 
     def value_iteration(self, P_a, rewards, gamma, error=1):
-        # Number of states in the state space and number of actions
-        n_states, n_actions, _ = np.shape(P_a)
         # Initialize the value function
-        values = np.zeros([n_states])
+        values = np.zeros([self.n_states])
 
         # estimate values
         while True:
-            # Temporary copy to check find the difference between new value function calculated and the current value function
+            # Temporary copy to check find the difference between new value function calculated & current value function
             # to ensure improvement in value
             values_tmp = values.copy()
 
-            for s in range(n_states):
-                v_s = []
+            for s in range(self.n_states):
                 values[s] = max(
                     [sum([P_a[s, a, s1] * (rewards[s] + gamma * values_tmp[s1])
-                          for s1 in range(n_states)])
-                     for a in range(n_actions)])
+                          for s1 in range(self.n_states)])
+                     for a in range(self.n_actions)])
                 # print "values ", values[s]
-            if max([abs(values[s] - values_tmp[s]) for s in range(n_states)]) < error:
+            if max([abs(values[s] - values_tmp[s]) for s in range(self.n_states)]) < error:
                 break
         # generate deterministic policy
-        policy = np.zeros([n_states])
-        for s in range(n_states):
+        policy = np.zeros([self.n_states])
+        for s in range(self.n_states):
             policy[s] = np.argmax([sum([P_a[s, a, s1] * (rewards[s] + gamma * values[s1])
-                                        for s1 in range(n_states)])
-                                   for a in range(n_actions)])
+                                        for s1 in range(self.n_states)])
+                                   for a in range(self.n_actions)])
 
         return values, policy
 
-    def compute_state_visition_frequency(self, P_a, trajectories, optimal_policy):
-        n_states, n_actions, _ = np.shape(P_a)
+    def compute_state_visitation_frequency(self, P_a, trajectories, optimal_policy):
         n_trajectories = len(trajectories)
         total_states = len(trajectories[0])
         d_states = len(trajectories[0][0])
         T = total_states
         # mu[s, t] is the prob of visiting state s at time t
-        mu = np.zeros([n_states, T])
+        mu = np.zeros([self.n_states, T])
         # print "mu is ", mu
-        # print "mu shape ", mu.shape
         for trajectory in trajectories:
             # print "trajectory is ", trajectory
             # To get the values of the trajectory in the state space created
@@ -260,10 +259,11 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
             mu[int(trajectory_index), 0] += 1
         mu[:, 0] = mu[:, 0] / n_trajectories
 
-        for s in range(n_states):
+        for s in range(self.n_states):
             for t in range(T - 1):
                 # Computes the mu value for each state once the optimal action is taken
-                mu[s, t + 1] = sum([mu[pre_s, t] * P_a[pre_s, int(optimal_policy[pre_s]), s] for pre_s in range(n_states)])
+                mu[s, t + 1] = sum([mu[pre_s, t] * P_a[pre_s, int(optimal_policy[pre_s]), s]
+                                    for pre_s in range(self.n_states)])
         p = np.sum(mu, 1)
         return p
 
@@ -273,7 +273,7 @@ if __name__ == '__main__':
     # Pass the gridsize required
     weights = np.array([[1, 1, 0]])
     # term_state = np.random.randint(0, grid_size ** 3)]
-    env_obj = RobotStateUtils(11, weights)
+    env_obj = RobotStateUtils(11, weights, 25)
     states = env_obj.create_state_space_model_func()
     action = env_obj.create_action_set_func()
     # print "State space created is ", states
@@ -296,7 +296,7 @@ if __name__ == '__main__':
     robot_mdp = RobotMarkovModel()
     # Finds the sum of features of the expert trajectory and list of all the features of the expert trajectory
     sum_trajectory_features, feature_array_all_trajectories = robot_mdp.generate_trajectories()
-    svf = env_obj.compute_state_visition_frequency(P_a, feature_array_all_trajectories, policy)
+    svf = env_obj.compute_state_visitation_frequency(P_a, feature_array_all_trajectories, policy)
     print "svf is ", svf
     print "svf shape is ", svf.shape
 

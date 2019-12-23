@@ -1,0 +1,1 @@
+from pytictoc import TicToc

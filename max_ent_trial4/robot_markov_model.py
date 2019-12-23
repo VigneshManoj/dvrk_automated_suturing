@@ -114,6 +114,8 @@ if __name__ == '__main__':
     sum_feat, feat_array = obj.generate_trajectories()
     # print "sum of features ", sum_feat
     total_states = len(feat_array[0])
+    print "states value at 31 is ", s[0][total_states-1]
+    print "total states is ", total_states
     print "features array ", len(s[0][0:total_states])
     # print "len ", len(feat_array[0][0])
     d_states = len(feat_array[0][0])

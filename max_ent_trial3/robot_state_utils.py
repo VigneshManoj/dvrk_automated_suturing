@@ -1,13 +1,12 @@
 import numpy as np
-import numba as nb
 import math
 import concurrent.futures
 from robot_markov_model import RobotMarkovModel
 import numpy.random as rn
-
+import time
 
 class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
-    def __init__(self, grid_size, weights):
+    def __init__(self, grid_size, weights, gamma):
         super(RobotStateUtils, self).__init__(max_workers=8)
         # Model here means the 3D cube being created
         # linspace limit values: limit_values_pos = [[-0.009, -0.003], [0.003, 007], [-0.014, -0.008]]
@@ -24,11 +23,16 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         # Numerical values assigned to each action in the dictionary
         self.possible_actions = [i for i in range(27)]
         # Total Number of states defining the state of the robot
-        self.n_states = 3
+        self.n_states = 1
+        self.n_actions = 1
         # self.current_pos = 1000
         self.terminal_state_val = 25
         self.weights = weights
         self.trans_prob = 1
+        self.gamma = gamma
+        self.values_tmp = np.zeros([self.n_states])
+        self.rewards = []
+
 
     def create_state_space_model_func(self):
         # Creates the state space of the robot based on the values initialized for linspace by the user
@@ -184,7 +188,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
             return [(curr_state, 1)]
         resulting_state = []
         if self.trans_prob == 1:
-            for i in range(0, self.n_states):
+            for i in range(0, 3):
                 resulting_state.append(round(self.states[curr_state][i] + self.action_space[action][i], 1))
             resulting_state_index = self.get_state_val_index(resulting_state)
 
@@ -197,11 +201,11 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
 
     def get_transition_mat_deterministic(self):
 
-        n_states = self.grid_size**3
-        n_actions = len(self.action_space)
-        P_a = np.zeros((n_states, n_actions, n_states), dtype=np.int32)
-        for si in range(n_states):
-            for a in range(n_actions):
+        self.n_states = self.grid_size**3
+        self.n_actions = len(self.action_space)
+        self.P_a = np.zeros((self.n_states, self.n_actions, self.n_states), dtype=np.int32)
+        for si in range(self.n_states):
+            for a in range(self.n_actions):
                 probs = self.get_transition_states_and_probs(si, a)
 
                 for posj, prob in probs:
@@ -209,36 +213,50 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
                     sj = int(posj)
                     # Prob of si to sj given action a
                     prob = int(prob)
-                    P_a[si, a, sj] = prob
-        return P_a
+                    self.P_a[si, a, sj] = prob
+        return self.P_a
 
-    def value_iteration(self, P_a, rewards, gamma, error=1):
+    def value_calc(self, s):
+        # print "\n state val is ", s
+        values = max(
+            [sum([self.P_a[s, a, s1] * (self.rewards[s] + self.gamma * self.values_tmp[s1])
+                  for s1 in range(self.n_states)])
+             for a in range(self.n_actions)])
+
+        return values, s
+
+    def value_iteration(self, rewards, error=1):
+        tic = time.clock()
         # Number of states in the state space and number of actions
-        n_states, n_actions, _ = np.shape(P_a)
+        self.n_states, self.n_actions, _ = np.shape(P_a)
+        self.rewards = rewards
+        self.states_range_value = range(0, self.n_states)
         # Initialize the value function
-        values = np.zeros([n_states])
-
+        values = np.zeros([self.n_states])
+        tic_value = time.clock()
         # estimate values
         while True:
             # Temporary copy to check find the difference between new value function calculated and the current value function
             # to ensure improvement in value
-            values_tmp = values.copy()
+            self.values_tmp = values.copy()
+            # print "n states is ", self.states_range_value
+            for q, s in self.map(self.value_calc, self.states_range_value):
+                values[s] = q
 
-            for s in range(n_states):
-                v_s = []
-                values[s] = max(
-                    [sum([P_a[s, a, s1] * (rewards[s] + gamma * values_tmp[s1])
-                          for s1 in range(n_states)])
-                     for a in range(n_actions)])
                 # print "values ", values[s]
-            if max([abs(values[s] - values_tmp[s]) for s in range(n_states)]) < error:
+            if max([abs(values[s] - self.values_tmp[s]) for s in range(self.n_states)]) < error:
                 break
+        toc_value = time.clock()
         # generate deterministic policy
-        policy = np.zeros([n_states])
-        for s in range(n_states):
-            policy[s] = np.argmax([sum([P_a[s, a, s1] * (rewards[s] + gamma * values[s1])
-                                        for s1 in range(n_states)])
-                                   for a in range(n_actions)])
+        policy = np.zeros([self.n_states])
+        for s in range(self.n_states):
+            policy[s] = np.argmax([sum([self.P_a[s, a, s1] * (self.rewards[s] + self.gamma * values[s1])
+                                        for s1 in range(self.n_states)])
+                                   for a in range(self.n_actions)])
+
+        toc = time.clock()
+        print "Time taken for calculating value is ", toc_value - tic_value
+        print "Time taken for calculating value iteration function is ", toc - tic
 
         return values, policy
 
@@ -267,13 +285,13 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         p = np.sum(mu, 1)
         return p
 
-    '''
+
 if __name__ == '__main__':
     # Robot Object called
     # Pass the gridsize required
     weights = np.array([[1, 1, 0]])
     # term_state = np.random.randint(0, grid_size ** 3)]
-    env_obj = RobotStateUtils(11, weights)
+    env_obj = RobotStateUtils(11, weights, gamma=0.9)
     states = env_obj.create_state_space_model_func()
     action = env_obj.create_action_set_func()
     # print "State space created is ", states
@@ -287,21 +305,21 @@ if __name__ == '__main__':
         rewards.append(r)
         features.append(f)
     # print "rewards is ", rewards
-    # value, policy = env_obj.value_iteration(P_a, rewards, gamma=0.9)
-    policy = np.random.randint(27, size=1331)
+    value, policy = env_obj.value_iteration(rewards)
+    # policy = np.random.randint(27, size=1331)
     print "policy is ", policy
-    print "features is ", features
-    feat = np.array([features]).transpose().reshape((len(features[0]), len(features)))
-    print "features shape is ", feat.shape
-    robot_mdp = RobotMarkovModel()
+    # print "features is ", features
+    ## feat = np.array([features]).transpose().reshape((len(features[0]), len(features)))
+    # print "features shape is ", feat.shape
+    # robot_mdp = RobotMarkovModel()
     # Finds the sum of features of the expert trajectory and list of all the features of the expert trajectory
-    sum_trajectory_features, feature_array_all_trajectories = robot_mdp.generate_trajectories()
-    svf = env_obj.compute_state_visition_frequency(P_a, feature_array_all_trajectories, policy)
-    print "svf is ", svf
-    print "svf shape is ", svf.shape
+    # sum_trajectory_features, feature_array_all_trajectories = robot_mdp.generate_trajectories()
+    # svf = env_obj.compute_state_visition_frequency(P_a, feature_array_all_trajectories, policy)
+    # print "svf is ", svf
+    # print "svf shape is ", svf.shape
 
-    print "expected svf is ", feat.dot(svf).reshape(3, 1)
-    '''
+    # print "expected svf is ", feat.dot(svf).reshape(3, 1)
+
     '''
     # x = [-0.5, 0.2, 0.4]
     # row_column = obj_state_util.get_state_val_index(x)
