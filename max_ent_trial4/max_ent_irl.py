@@ -55,7 +55,7 @@ class MaxEntIRL:
         terminal_state_val_from_trajectory = state_values_from_trajectory[0][total_states-1]
         # Pass the gridsize required
         # To create the state space model, we need to run the below commands
-        env_obj = RobotStateUtils(grid_size, weights, terminal_state_val_from_trajectory)
+        env_obj = RobotStateUtils(grid_size, weights, discount, terminal_state_val_from_trajectory)
         states = env_obj.create_state_space_model_func()
         action = env_obj.create_action_set_func()
         # print "State space created is ", states
@@ -69,12 +69,12 @@ class MaxEntIRL:
             rewards.append(r)
             state_features.append(f)
         # print "rewards is ", rewards
-        value, policy = env_obj.value_iteration(P_a, rewards, gamma=discount)
+        value, policy = env_obj.value_iteration(rewards)
         # policy = np.random.randint(27, size=1331)
         print "policy is ", policy
         # Finds the sum of features of the expert trajectory and list of all the features of the expert trajectory
         expert_trajectory_states, _ = robot_mdp.return_trajectories_data()
-        expected_svf = env_obj.compute_state_visitation_frequency(P_a, expert_trajectory_states, policy)
+        expected_svf = env_obj.compute_state_visitation_frequency(expert_trajectory_states, policy)
         # Formats the features array in a way that it can be multiplied with the svf values
         state_features = np.array([state_features]).transpose().reshape((len(state_features[0]), len(state_features)))
         print "svf is ", expected_svf
