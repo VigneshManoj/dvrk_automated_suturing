@@ -345,7 +345,7 @@ def q_learning(env_obj, weights, alpha, gamma, epsilon):
             Q[observation, action] = Q[observation, action] + \
                                      alpha * (reward + gamma * Q[next_observation_index, action_] -
                                               Q[observation, action])
-            print "Q value in loop", Q[observation, action]
+            # print "Q value in loop", Q[observation, action]
             episode_policy.append(np.exp(Q[observation, action]))
             # misc_val = Q[observation, action]
             # print "misc val1 ", Q[observation, action]
@@ -392,11 +392,11 @@ if __name__ == '__main__':
     # r = obj_state_util.step(state_check, action_val)
     # print "r is ", r
     policy, state_traj, expected_svf = q_learning(env_obj, weights, alpha=0.1, gamma=0.9, epsilon=0.2)
-    print "best policy is ", policy
+    # print "best policy is ", policy
     policy_val = []
     for i in range(len(policy)):
         policy_val.append(policy[i]/float(sum(policy)))
-    print "policy val is ", policy_val
+    # print "policy val is ", policy_val
     # print "state traj", state_traj
     # print "rewards ", rewards
     # P_a = env_obj.get_transition_mat_deterministic()
@@ -404,6 +404,7 @@ if __name__ == '__main__':
     # print "prob shape is ", P_a.shape
     # print "prob value is ", P_a[0]
     print "Expected svf is ", expected_svf
+    print "svf shape ", expected_svf.shape
 
 
 '''
