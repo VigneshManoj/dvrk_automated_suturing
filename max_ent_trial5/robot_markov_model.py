@@ -5,13 +5,13 @@ class RobotMarkovModel:
     def __init__(self):
         # Reads the trajectory data from the file
         trajectories1 = np.genfromtxt\
-            ("/home/vignesh/PycharmProjects/dvrk_automated_suturing/data/check_data_max_ent_trial4_code1.csv",
+            ("/home/vignesh/PycharmProjects/dvrk_automated_suturing/data/check_data_max_ent_trial5_code1.csv",
              delimiter=",")
         trajectories2 = np.genfromtxt\
-            ("/home/vignesh/PycharmProjects/dvrk_automated_suturing/data/check_data_max_ent_trial4_code2.csv",
+            ("/home/vignesh/PycharmProjects/dvrk_automated_suturing/data/check_data_max_ent_trial5_code2.csv",
              delimiter=",")
         trajectories3 = np.genfromtxt\
-            ("/home/vignesh/PycharmProjects/dvrk_automated_suturing/data/check_data_max_ent_trial4_code3.csv",
+            ("/home/vignesh/PycharmProjects/dvrk_automated_suturing/data/check_data_max_ent_trial5_code3.csv",
              delimiter=",")
         # Separates the state trajectories data and action data
         self.state_trajectories = []

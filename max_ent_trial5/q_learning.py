@@ -5,7 +5,7 @@ import concurrent.futures
 from robot_markov_model import RobotMarkovModel
 import numpy.random as rn
 
-
+'''
 class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
     def __init__(self, grid_size, weights):
         super(RobotStateUtils, self).__init__(max_workers=8)
@@ -89,7 +89,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         else:
             # If there are no issues with the new state value then return false, negation is present on the other end
             return False
-    '''
+    
     def reward_func(self, end_pos_x, end_pos_y, end_pos_z, alpha):
         # Creates list of all the features being considered
         features = [self.features_array_prim_func, self.features_array_sec_func, self.features_array_tert_func]
@@ -101,7 +101,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
             reward = reward + alpha[0, n]*features_arr[n]
         # Created the feature function assuming everything has importance, so therefore added each parameter value
         return reward, np.array([features_arr]), len(features)
-    '''
+    
     def reward_func(self, end_pos_x, end_pos_y, end_pos_z, alpha):
         # Creates list of all the features being considered
 
@@ -257,7 +257,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         p = np.sum(mu, 1)
         return p
 
-
+'''
 def max_action(Q, state_val, action_values):
     # print "max action action val ", action_values
     q_values = np.array([Q[state_val, a] for a in action_values])
@@ -268,15 +268,16 @@ def max_action(Q, state_val, action_values):
     return action_values[action]
 
 # def q_learning(env_obj, alpha, gamma, epsilon):
-def q_learning(env_obj, weights, alpha, gamma, epsilon):
+def q_learning(env_obj, weights, alpha, gamma):
 
     # env_obj = RobotStateUtils(11, weights)
     # states = env_obj.create_state_space_model_func()
     # action = env_obj.create_action_set_func()
     # print "State space created is ", states
     Q = {}
-    num_games = 50000
+    num_games = 500
     total_rewards = np.zeros(num_games)
+    epsilon = 0.2
     policy = {}
     state_trajectories = {}
     # Default value
@@ -291,7 +292,7 @@ def q_learning(env_obj, weights, alpha, gamma, epsilon):
             Q[state, action] = 0
 
     for i in range(num_games):
-        if i % 25000 == 0:
+        if i % 100 == 0:
             print('-------------starting game-------------- ', i)
         done = False
         ep_rewards = 0
@@ -345,15 +346,26 @@ def q_learning(env_obj, weights, alpha, gamma, epsilon):
     return Q
     # return policy[most_reward_index], sum_state_trajectory, expected_svf
 
+def optimal_policy_func(states, action, env_obj, weights, learning_rate, discount):
+    Q = q_learning(env_obj, weights, learning_rate, discount)
+    policy = np.zeros(len(states))
+    for s in states:
+        Q_for_state = [Q[int(s), int(a)] for a in action]
+        # print "Q for each state is ", Q_for_state
+        # print "state  ", s
+        # policy[int(s)] = np.max(Q[int(s), int(a)] for a in action)
+        policy[int(s)] = np.argmax(Q_for_state)
+    # print " policy is ", policy
 
+    return policy
 
-
+'''
 if __name__ == '__main__':
     # Robot Object called
     # Pass the gridsize required
     weights = np.array([[1, 1, 0]])
     # term_state = np.random.randint(0, grid_size ** 3)]
-    env_obj = RobotStateUtils(3, weights)
+    env_obj = RobotStateUtils(11, weights)
     states = env_obj.create_state_space_model_func()
     action = env_obj.create_action_set_func()
     print "State space created is ", states
@@ -361,7 +373,7 @@ if __name__ == '__main__':
     print "states is ", states[0], states[18]
     print "actions are ", action
 
-    Q = q_learning(env_obj, weights, alpha=0.1, gamma=0.9, epsilon=0.2)
+    Q = q_learning(env_obj, weights, alpha=0.1, gamma=0.9)
     # print "Q is ", Q
     # print "Q shape is ", len(Q)
     # print "Q values are ", Q.values()
@@ -375,7 +387,7 @@ if __name__ == '__main__':
         policy[int(s)] = np.argmax(Q_for_state)
     print " policy is ", policy
 
-
+'''
 
 
 

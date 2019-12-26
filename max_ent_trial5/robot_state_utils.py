@@ -61,9 +61,9 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
     def create_action_set_func(self):
         # Creates the action space required for the robot. It is defined by the user beforehand itself
         action_set = []
-        for pos_x in [-0.1, 0, 0.1]:
-            for pos_y in [-0.1, 0, 0.1]:
-                for pos_z in [-0.1, 0, 0.1]:
+        for pos_x in [-0.5, 0, 0.5]:
+            for pos_y in [-0.5, 0, 0.5]:
+                for pos_z in [-0.5, 0, 0.5]:
                     action_set.append([pos_x, pos_y, pos_z])
         # Assigning the dictionary keys
         for i in range(len(action_set)):
@@ -227,7 +227,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
                      for a in range(self.n_actions)])
         return value, s
 
-    def value_iteration(self, rewards, error=1):
+    def value_iteration(self, rewards, error=0.1):
         # Initialize the value function
         t_complete_func = TicToc()
         t_complete_func.tic()
@@ -289,97 +289,6 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
                                     for pre_s in range(self.n_states)])
         p = np.sum(mu, 1)
         return p
-    '''
-    def make_epsilon_greedy_policy(self, Q, epsilon, nA):
-        """
-        Creates an epsilon-greedy policy based on a given Q-function and epsilon.
-
-        Args:
-            Q: A dictionary that maps from state -> action-values.
-                Each value is a numpy array of length nA (see below)
-            epsilon: The probability to select a random action. Float between 0 and 1.
-            nA: Number of actions in the environment.
-
-        Returns:
-            A function that takes the observation as an argument and returns
-            the probabilities for each action in the form of a numpy array of length nA.
-
-        """
-
-        def policy_fn(observation):
-            A = np.ones(nA, dtype=float) * epsilon / nA
-            best_action = np.argmax(Q[observation])
-            A[best_action] += (1.0 - epsilon)
-            return A
-
-        return policy_fn
-
-    def q_learning(self, env, num_episodes, discount_factor=1.0, alpha=0.5, epsilon=0.1):
-        """
-        Q-Learning algorithm: Off-policy TD control. Finds the optimal greedy policy
-        while following an epsilon-greedy policy
-
-        Args:
-            env: OpenAI environment.
-            num_episodes: Number of episodes to run for.
-            discount_factor: Gamma discount factor.
-            alpha: TD learning rate.
-            epsilon: Chance to sample a random action. Float between 0 and 1.
-
-        Returns:
-            A tuple (Q, episode_lengths).
-            Q is the optimal action-value function, a dictionary mapping state -> action values.
-            stats is an EpisodeStats object with two numpy arrays for episode_lengths and episode_rewards.
-        """
-
-        # The final action-value function.
-        # A nested dictionary that maps state -> (action -> action-value).
-        Q = defaultdict(lambda: np.zeros(env.action_space.n))
-
-        # Keeps track of useful statistics
-        stats = plotting.EpisodeStats(
-            episode_lengths=np.zeros(num_episodes),
-            episode_rewards=np.zeros(num_episodes))
-
-        # The policy we're following
-        policy = self.make_epsilon_greedy_policy(Q, epsilon, env.action_space.n)
-
-        for i_episode in range(num_episodes):
-            # Print out which episode we're on, useful for debugging.
-            if (i_episode + 1) % 100 == 0:
-                print("\rEpisode {}/{}.".format(i_episode + 1, num_episodes), end="")
-                sys.stdout.flush()
-
-            # Reset the environment and pick the first action
-            state = env.reset()
-
-            # One step in the environment
-            # total_reward = 0.0
-            for t in itertools.count():
-
-                # Take a step
-                action_probs = policy(state)
-                action = np.random.choice(np.arange(len(action_probs)), p=action_probs)
-                next_state, reward, done, _ = env.step(action)
-
-                # Update statistics
-                stats.episode_rewards[i_episode] += reward
-                stats.episode_lengths[i_episode] = t
-
-                # TD Update
-                best_next_action = np.argmax(Q[next_state])
-                td_target = reward + discount_factor * Q[next_state][best_next_action]
-                td_delta = td_target - Q[state][action]
-                Q[state][action] += alpha * td_delta
-
-                if done:
-                    break
-
-                state = next_state
-
-        return Q, stats
-    '''
-
 
 
 if __name__ == '__main__':
@@ -387,10 +296,11 @@ if __name__ == '__main__':
     # Pass the gridsize required
     weights = np.array([[1, 1, 0]])
     # term_state = np.random.randint(0, grid_size ** 3)]
-    env_obj = RobotStateUtils(11, weights, 0.9, [0.5, 0.5, 0])
+    env_obj = RobotStateUtils(3, weights, 0.9, [0.5, 0.5, 0])
     states = env_obj.create_state_space_model_func()
     action = env_obj.create_action_set_func()
-    # print "State space created is ", states
+    print "State space created is ", states
+    '''
     P_a = env_obj.get_transition_mat_deterministic()
     # print "P_a is ", P_a
     print "shape of P_a ", P_a.shape
@@ -408,7 +318,7 @@ if __name__ == '__main__':
     # feat = np.array([features]).transpose().reshape((len(features[0]), len(features)))
     # print "features shape is ", feat.shape
 
-    '''
+    
     robot_mdp = RobotMarkovModel()
     # Finds the sum of features of the expert trajectory and list of all the features of the expert trajectory
     sum_trajectory_features, feature_array_all_trajectories = robot_mdp.generate_trajectories()

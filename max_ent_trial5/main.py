@@ -23,4 +23,4 @@ def main(grid_size, discount_factor, epochs, learning_rate):
 
 if __name__ == '__main__':
     # Epochs indicates the number of times gradient iteration needs to be run
-    main(grid_size=11, discount_factor=0.9, epochs=100, learning_rate=0.01)
+    main(grid_size=3, discount_factor=0.9, epochs=100, learning_rate=0.01)

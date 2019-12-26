@@ -3,7 +3,7 @@ import numpy.random as rn
 import math
 from robot_markov_model import RobotMarkovModel
 from robot_state_utils import RobotStateUtils
-
+from q_learning import q_learning, optimal_policy_func
 
 class MaxEntIRL:
 
@@ -27,7 +27,7 @@ class MaxEntIRL:
             print "Epoch running is ", i
             # Multiplies the features with randomized alpha value, size of output Ex: dot(449*2, 2x1)
             optimal_policy, state_features, expected_svf = self.find_expected_svf(grid_size, weights, discount,
-                                                                                  total_states)
+                                                                                  total_states, learning_rate)
             grad = feature_expectations.reshape(d_states, 1) - state_features.dot(expected_svf).reshape(d_states, 1)
 
             weights += learning_rate * np.transpose(grad)
@@ -44,7 +44,7 @@ class MaxEntIRL:
         # Return the expert data feature expectations
         return feature_expectations
 
-    def find_expected_svf(self, grid_size, weights, discount, total_states):
+    def find_expected_svf(self, grid_size, weights, discount, total_states, learning_rate):
         # Creates object of robot markov model
         robot_mdp = RobotMarkovModel()
         # Returns the state and action values of the state space being created
@@ -69,7 +69,8 @@ class MaxEntIRL:
             rewards.append(r)
             state_features.append(f)
         # print "rewards is ", rewards
-        value, policy = env_obj.value_iteration(rewards)
+        # value, policy = env_obj.value_iteration(rewards)
+        policy = optimal_policy_func(states, action, env_obj, weights, learning_rate, discount)
         # policy = np.random.randint(27, size=1331)
         print "policy is ", policy
         # Finds the sum of features of the expert trajectory and list of all the features of the expert trajectory
