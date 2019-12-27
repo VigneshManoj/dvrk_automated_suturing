@@ -2,88 +2,94 @@ import numpy as np
 import numpy.random as rn
 import math
 from robot_markov_model import RobotMarkovModel
-from robot_state_utils import RobotStateUtils
-from q_learning import q_learning, optimal_policy_func
+from robot_state_utils import RobotStateUtils, q_learning, optimal_policy_func
+
 
 class MaxEntIRL:
 
-    def __init__(self, trajectory_length):
+    def __init__(self, trajectory_length, grid_size):
         # super(MaxEntIRL, self).__init__(11)
         self.trajectory_length = trajectory_length
+        self.grid_size = grid_size
 
     # Calculates the reward function weights using the Max Entropy Algorithm
-    def max_ent_irl(self, grid_size, sum_trajectory_features, feature_array_all_trajectories, discount,
-                    n_trajectories, epochs, learning_rate):
+    def max_ent_irl(self, trajectories, discount, n_trajectories, epochs, learning_rate):
         # Finds the total number of states and dimensions of the list of features array
-        total_states = len(feature_array_all_trajectories[0])
-        d_states = len(feature_array_all_trajectories[0][0])
+        total_states = len(trajectories[0])
+        d_states = len(trajectories[0][0])
         # print "n states and d states ", n_states, d_states
+        feat_map = np.eye(self.grid_size ** 3)
         # Initialize with random weights based on the dimensionality of the states
-        weights = np.random.rand(1, d_states)
+        weights = np.random.uniform(size=(feat_map.shape[1],))
         # Find feature expectations, sum of features of trajectory/number of trajectories
-        feature_expectations = self.find_feature_expectations(sum_trajectory_features, n_trajectories)
+        feature_expectations = self.find_feature_expectations(feat_map, trajectories)
+        # print "feature array is ", feature_array_all_trajectories[0][0:total_states]
         # Gradient descent on alpha
         for i in range(epochs):
             print "Epoch running is ", i
             # Multiplies the features with randomized alpha value, size of output Ex: dot(449*2, 2x1)
-            optimal_policy, state_features, expected_svf = self.find_expected_svf(grid_size, weights, discount,
-                                                                                  total_states, learning_rate)
-            grad = feature_expectations.reshape(d_states, 1) - state_features.dot(expected_svf).reshape(d_states, 1)
-
+            reward = np.dot(feat_map, weights)
+            optimal_policy, expected_svf = self.find_expected_svf(reward, discount, trajectories, learning_rate)
+            grad = feature_expectations - feat_map.T.dot(expected_svf)
+            if i < 50:
+                learning_rate = 0.1
+            else:
+                learning_rate = 0.01
             weights += learning_rate * np.transpose(grad)
             print "weights is ", weights
         # Compute the reward of the trajectory based on the weights value calculated
-        trajectory_reward = np.dot(feature_array_all_trajectories[0][0:total_states], (weights.reshape(d_states, 1)))
+        trajectory_reward = np.dot(feat_map, weights)
 
         return trajectory_reward, weights
 
-    def find_feature_expectations(self, trajectory_features, n_trajectories):
-        # Takes the sum of all the expert features as input
-        # Divide by the number of trajectories data available
-        feature_expectations = trajectory_features/n_trajectories
-        # Return the expert data feature expectations
-        return feature_expectations
 
-    def find_expected_svf(self, grid_size, weights, discount, total_states, learning_rate):
+    def find_feature_expectations(self, feat_map, trajectories):
+        feat_exp = np.zeros([feat_map.shape[1]])
+        for episode in trajectories:
+            # print "episode is ", episode
+            for state_value in episode:
+                # print "state value is ", state_value
+                state_value_index = self.get_state_val_index(state_value)
+                # print "feat map is ", feat_map[state_value_index, :]
+                feat_exp += feat_map[state_value_index, :]
+        feat_exp = feat_exp / len(trajectories)
+
+        return feat_exp
+
+    def find_expected_svf(self, reward, discount, trajectories, learning_rate):
         # Creates object of robot markov model
-        robot_mdp = RobotMarkovModel()
-        # Returns the state and action values of the state space being created
-        state_values_from_trajectory, _ = robot_mdp.return_trajectories_data()
-        # Finds the terminal state value from the expert trajectory
         # 0 indicates that the first trajectory data is being used
+        total_states = len(trajectories[0])
         # total_states indicates that the last value of that trajectory data should be used as terminal state
-        terminal_state_val_from_trajectory = state_values_from_trajectory[0][total_states-1]
+        terminal_state_val_from_trajectory = trajectories[0][total_states-1]
+        print "Terminal state value is ", terminal_state_val_from_trajectory
         # Pass the gridsize required
         # To create the state space model, we need to run the below commands
-        env_obj = RobotStateUtils(grid_size, weights, discount, terminal_state_val_from_trajectory)
+        env_obj = RobotStateUtils(self.grid_size, discount, terminal_state_val_from_trajectory)
         states = env_obj.create_state_space_model_func()
         action = env_obj.create_action_set_func()
         # print "State space created is ", states
         P_a = env_obj.get_transition_mat_deterministic()
         # print "P_a is ", P_a
-        # Calculates the reward and feature for the trajectories being created in the state space
-        rewards = []
-        state_features = []
-        for i in range(len(states)):
-            r, f = env_obj.reward_func(states[i][0], states[i][1], states[i][2], weights)
-            rewards.append(r)
-            state_features.append(f)
-        # print "rewards is ", rewards
-        # value, policy = env_obj.value_iteration(rewards)
-        policy = optimal_policy_func(states, action, env_obj, weights, learning_rate, discount)
+
+        policy = optimal_policy_func(states, action, env_obj, reward, learning_rate, discount)
         # policy = np.random.randint(27, size=1331)
         print "policy is ", policy
+
         # Finds the sum of features of the expert trajectory and list of all the features of the expert trajectory
-        expert_trajectory_states, _ = robot_mdp.return_trajectories_data()
-        expected_svf = env_obj.compute_state_visitation_frequency(expert_trajectory_states, policy)
+        expected_svf = env_obj.compute_state_visitation_frequency(trajectories, policy)
         # Formats the features array in a way that it can be multiplied with the svf values
-        state_features = np.array([state_features]).transpose().reshape((len(state_features[0]), len(state_features)))
         print "svf is ", expected_svf
-        print "svf shape is ", expected_svf.shape
+        # print "svf shape is ", expected_svf.shape
 
         # Returns the policy, state features of the trajectories considered in the state space and expected svf
-        return policy, state_features, expected_svf
+        return policy, expected_svf
 
+    def get_state_val_index(self, state_val):
+        index_val = abs((state_val[0] + 0.5) * pow(self.grid_size, 2)) + abs(
+            (state_val[1] + 0.5) * pow(self.grid_size, 1)) + \
+                    abs((state_val[2] + 0.5))
+        return int(round(index_val * (self.grid_size - 1)))
 
 
 

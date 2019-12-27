@@ -76,6 +76,35 @@ class RobotMarkovModel:
                     abs((state_val[2] + 0.5))
         return round(index_val*(10))
 
+    # def generate_trajectories(self):
+    #     # Creates the array of features and rewards for the whole trajectory
+    #     # It calls the RobotMarkovModel class reward function which returns the reward and features for that specific
+    #     # state values. These values are repeatedly added until the length of trajectory
+    #     individual_feature_array = []
+    #     # feature_array_all_trajectories = np.zeros((3, 185, 3))
+    #     feature_array_all_trajectories = []
+    #     sum_trajectory_features = np.zeros([3, 1], dtype='float32')
+    #     for state_trajectory in self.state_trajectories:
+    #         # It is to reset the list to null and start from 185 again
+    #         individual_feature_array = []
+    #         for i in range(0, len(state_trajectory)):
+    #             # Reads only the state trajectory data and assigns the variables value of the first set of state values
+    #             end_pos_x = state_trajectory[i, 0]
+    #             end_pos_y = state_trajectory[i, 1]
+    #             end_pos_z = state_trajectory[i, 2]
+    #
+    #             # Calls the features function which returns features for that specific set of state values
+    #             features = self.features_func(end_pos_x, end_pos_y, end_pos_z)
+    #             # Creates a list of all the features
+    #             individual_feature_array.append(features)
+    #             sum_trajectory_features = sum_trajectory_features + np.vstack((features[0], features[1], features[2]))
+    #
+    #         # Calculates the sum of all the trajectory feature values
+    #         feature_array_all_trajectories.append(individual_feature_array)
+    #
+    #     # Returns the array of sum of all trajectory features and returns the array of all the features of a trajectory
+    #     return np.array(sum_trajectory_features), np.array(feature_array_all_trajectories)
+
     def generate_trajectories(self):
         # Creates the array of features and rewards for the whole trajectory
         # It calls the RobotMarkovModel class reward function which returns the reward and features for that specific
@@ -83,7 +112,6 @@ class RobotMarkovModel:
         individual_feature_array = []
         # feature_array_all_trajectories = np.zeros((3, 185, 3))
         feature_array_all_trajectories = []
-        sum_trajectory_features = np.zeros([3, 1], dtype='float32')
         for state_trajectory in self.state_trajectories:
             # It is to reset the list to null and start from 185 again
             individual_feature_array = []
@@ -92,41 +120,35 @@ class RobotMarkovModel:
                 end_pos_x = state_trajectory[i, 0]
                 end_pos_y = state_trajectory[i, 1]
                 end_pos_z = state_trajectory[i, 2]
-
-                # Calls the features function which returns features for that specific set of state values
-                features = self.features_func(end_pos_x, end_pos_y, end_pos_z)
-                # Creates a list of all the features
-                individual_feature_array.append(features)
-                sum_trajectory_features = sum_trajectory_features + np.vstack((features[0], features[1], features[2]))
-
-            # Calculates the sum of all the trajectory feature values
-            feature_array_all_trajectories.append(individual_feature_array)
-
+                individual_feature_array.append([end_pos_x, end_pos_y, end_pos_z])
+            # print "indi feat ", np.array(individual_feature_array)
+            feature_array_all_trajectories.append(np.array(individual_feature_array))
         # Returns the array of sum of all trajectory features and returns the array of all the features of a trajectory
-        return np.array(sum_trajectory_features), np.array(feature_array_all_trajectories)
-
+        return np.array(feature_array_all_trajectories)
 
 if __name__ == '__main__':
     obj = RobotMarkovModel()
     s, a = obj.return_trajectories_data()
-    print "states is ", s
+    # print "states is ", s
+    # print "actions is ", a
     # print "len state s", len(s[0])
-    sum_feat, feat_array = obj.generate_trajectories()
-    # print "sum of features ", sum_feat
-    total_states = len(feat_array[0])
-    print "states value at 31 is ", s[0][total_states-1]
-    print "total states is ", total_states
-    print "features array ", len(s[0][0:total_states])
-    # print "len ", len(feat_array[0][0])
-    d_states = len(feat_array[0][0])
-    T = total_states
+    feat_array = obj.generate_trajectories()
+    print "features ", feat_array
+    print "len is ", len(feat_array)
+    # total_states = len(feat_array[0])
+    # print "states value at 31 is ", s[0][total_states-1]
+    # print "total states is ", total_states
+    # print "features array ", len(s[0][0:total_states])
+    # # print "len ", len(feat_array[0][0])
+    # d_states = len(feat_array[0][0])
+    # T = total_states
     # print "total state is ", total_states
     # mu[s, t] is the prob of visiting state s at time t
-    mu = np.zeros([1331, T])
-    for trajectory in s:
-        # print "traj is ", trajectory
-        ind = obj.get_state_val_index(trajectory[0])
-        # print "ind is ", ind
-        mu[int(ind), 0] += 1
-    # print "mu is ", mu
+    # mu = np.zeros([1331, T])
+    # for trajectory in s:
+    #     # print "traj is ", trajectory
+    #     ind = obj.get_state_val_index(trajectory[0])
+    #     # print "ind is ", ind
+    #     mu[int(ind), 0] += 1
+    # # print "mu is ", mu
 
