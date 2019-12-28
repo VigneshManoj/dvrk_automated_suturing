@@ -1,4 +1,5 @@
 import numpy as np
+import numba as nb
 import math
 import concurrent.futures
 from robot_markov_model import RobotMarkovModel
@@ -6,7 +7,7 @@ import numpy.random as rn
 
 
 class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
-    def __init__(self, grid_size, terminal_state_val):
+    def __init__(self, grid_size, weights):
         super(RobotStateUtils, self).__init__(max_workers=8)
         # Model here means the 3D cube being created
         # linspace limit values: limit_values_pos = [[-0.009, -0.003], [0.003, 007], [-0.014, -0.008]]
@@ -25,7 +26,8 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         # Total Number of states defining the state of the robot
         self.n_states = 3
         # self.current_pos = 1000
-        self.terminal_state_val = terminal_state_val
+        self.terminal_state_val = 18
+        self.weights = weights
         self.trans_prob = 1
 
     def create_state_space_model_func(self):
@@ -89,9 +91,54 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
             return False
 
 
+
+    def reward_func(self, end_pos_x, end_pos_y, end_pos_z, alpha):
+        # Creates list of all the features being considered
+
+        # reward = -1
+        if self.is_terminal_state([end_pos_x, end_pos_y, end_pos_z]):
+            reward = 1
+        else:
+            reward = -1
+
+        return reward, 1, 2
+
+    '''
+    def reward_func(self, end_pos_x, end_pos_y, end_pos_z, alpha):
+        # Creates list of all the features being considered
+        features = [self.features_array_prim_func, self.features_array_sec_func, self.features_array_tert_func]
+        reward = 0
+        features_arr = []
+        for n in range(0, len(features)):
+            features_arr.append(features[n](end_pos_x, end_pos_y, end_pos_z))
+
+            reward = reward + alpha[0, n]*features_arr[n]
+        # Created the feature function assuming everything has importance, so therefore added each parameter value
+        return reward, np.array([features_arr]), len(features)
+
+    # Created feature set1 which basically takes the exponential of sum of individually squared value
+    def features_array_prim_func(self, end_pos_x, end_pos_y, end_pos_z):
+        feature_1 = np.exp(-(end_pos_x**2))
+        return feature_1
+
+    # Created feature set2 which basically takes the exponential of sum of individually squared value
+    def features_array_sec_func(self, end_pos_x, end_pos_y, end_pos_z):
+        feature_2 = np.exp(-(end_pos_y**2))
+        # print f2
+        return feature_2
+
+    # Created feature set3 which basically takes the exponential of sum of individually squared value
+    def features_array_tert_func(self, end_pos_x, end_pos_y, end_pos_z):
+        feature_3 = np.exp(-(end_pos_z**2))
+        return feature_3
+
+    def features_array_sum_func(self, end_pos_x, end_pos_y, end_pos_z):
+        feature_4 = np.exp(-(end_pos_x**2 + end_pos_y**2 + end_pos_z**2))
+        return feature_4
+    '''
     def reset(self):
         # self.pos = np.random.randint(0, len(self.states))
-        self.pos = 19
+        self.pos = 0
         self.grid = np.zeros((self.grid_size, self.grid_size, self.grid_size))
         return self.pos
 
@@ -123,6 +170,94 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         # print "random action choice ", np.random.randint(0, len(self.action_space))
         return np.random.randint(0, len(self.action_space))
 
+    def features_func(self, end_pos_x, end_pos_y, end_pos_z):
+
+        features = [self.features_array_prim_func, self.features_array_sec_func, self.features_array_tert_func]
+        features_arr = []
+        for n in range(0, len(features)):
+            features_arr.append(features[n](end_pos_x, end_pos_y, end_pos_z))
+        # Created the feature function assuming everything has importance, so therefore added each parameter value
+        return features_arr
+
+    def sum_of_features(self, state_trajectory):
+        # Creates the array of features and rewards for the whole trajectory
+        # It calls the RobotMarkovModel class reward function which returns the reward and features for that specific
+        # state values. These values are repeatedly added until the length of trajectory
+        n = len(state_trajectory)
+        # print "n is ", n
+        # print "state traj is ", state_trajectory
+        # print "state traj is ", state_trajectory[0][0]
+        sum_trajectories_features = []
+        trajectory_features = np.zeros([3, 1], dtype='float32')
+        for i in range(0, n):
+            # Reads only the state trajectory data and assigns the variables value of the first set of state values
+            end_pos_x = state_trajectory[i][0]
+            end_pos_y = state_trajectory[i][1]
+            end_pos_z = state_trajectory[i][2]
+
+            # Calls the rewards function which returns features for that specific set of state values
+            features = self.features_func(end_pos_x, end_pos_y, end_pos_z)
+            # Creates a list of all the features
+            trajectory_features = trajectory_features + np.vstack((features[0], features[1], features[2]))
+        # Calculates the sum of all the trajectory feature values
+        sum_trajectories_features.append(trajectory_features)
+        # Returns the array of trajectory features and returns the array of all the features
+        return np.array(sum_trajectories_features)
+
+    def get_transition_states_and_probs(self, curr_state, action):
+
+        if self.is_terminal_state(curr_state):
+            return [(curr_state, 1)]
+        resulting_state = []
+        if self.trans_prob == 1:
+            for i in range(0, self.n_states):
+                resulting_state.append(round(self.states[curr_state][i] + self.action_space[action][i], 1))
+            resulting_state_index = self.get_state_val_index(resulting_state)
+
+            if not self.off_grid_move(resulting_state, self.states[curr_state]):
+                # return resulting_state, reward, self.is_terminal_state(resulting_state_index), None
+                return [(resulting_state_index, 1)]
+            else:
+                # if the state is invalid, stay in the current state
+                return [(curr_state, 1)]
+
+    def get_transition_mat_deterministic(self):
+
+        n_states = self.grid_size**3
+        n_actions = len(self.action_space)
+        P_a = np.zeros((n_states, n_actions), dtype=np.int32)
+        for si in range(n_states):
+            for a in range(n_actions):
+                probs = self.get_transition_states_and_probs(si, a)
+
+                for posj, prob in probs:
+                    # Prob of si to sj given action a
+                    prob = int(prob)
+                    if prob == 1:
+                        P_a[si, a] = posj
+                    elif prob != 0:
+                        raise ValueError('not a deterministic environment!')
+        return P_a
+
+    def compute_state_visition_freq(self, trajs, optimal_policy):
+        P_a = self.get_transition_mat_deterministic()
+        n_states, n_actions = P_a.shape
+        # optimal_policy, trajs = q_learning(weights, alpha=0.1, gamma=0.9, epsilon=0.2)
+        T = 2
+        # print "T is ", T
+        # mu[s, t] is the prob of visiting state s at time t
+        mu = np.zeros([n_states, T])
+        # print "trajs is ", trajs
+        mu[0, 0] = 1
+        mu[:, 0] = mu[:, 0] / len(trajs)
+
+        for s in range(n_states):
+            for t in range(T-1):
+                print "P_a is ", [P_a[pre_s, int(optimal_policy[pre_s])] for pre_s in range(n_states)]
+                mu[s, t + 1] = sum([mu[pre_s, t] * P_a[pre_s, int(optimal_policy[pre_s])] for pre_s in range(n_states)])
+                print "mu val ", mu[s, t+1]
+        p = np.sum(mu, 1)
+        return p
 
 
 def max_action(Q, state_val, action_values):
@@ -142,7 +277,7 @@ def q_learning(env_obj, reward, alpha, gamma):
     # action = env_obj.create_action_set_func()
     # print "State space created is ", states
     Q = {}
-    num_games = 50000
+    num_games = 50
     total_rewards = np.zeros(num_games)
     epsilon = 0.2
     policy = {}
@@ -159,7 +294,7 @@ def q_learning(env_obj, reward, alpha, gamma):
             Q[state, action] = 0
 
     for i in range(num_games):
-        if i % 10000 == 0:
+        if i % 5 == 0:
             print('-------------starting game-------------- ', i)
         done = False
         ep_rewards = 0
@@ -235,33 +370,20 @@ if __name__ == '__main__':
     # Pass the gridsize required
     grid_size = 3
     feat_map = np.eye(grid_size**3)
-    terminal_state = 16
-    env_obj = RobotStateUtils(grid_size, terminal_state_val=terminal_state)
+    weights = np.random.uniform(size=(feat_map.shape[1],))
+    print "weights shape ", weights.shape
+    # weights = np.array([[1, 1, 1]])
+    # term_state = np.random.randint(0, grid_size ** 3)]
+    env_obj = RobotStateUtils(grid_size, weights)
     states = env_obj.create_state_space_model_func()
     action = env_obj.create_action_set_func()
-    # weights = np.array([[1, 1, 1]])
-    # index = env_obj.get_state_val_index([0.5, -0.5, 0])
-    # print "index is ", index
-    # term_state = np.random.randint(0, grid_size ** 3)]
-
     print "State space created is ", states
     policy = np.zeros(len(states))
     # print "states is ", states[0], states[18]
     print "actions are ", action
-    # r1 = np.array([0.93729132, 6.46284183, 0.59751722, 0.02687185, 8.29158771, 0.40334012,
-    #                0.59266189, 6.86164796, 0.78016216, -0.22017214, 4.74269386, -0.60966791,
-    #                0.15136383, 0.3804086, 0.20897725, 0.41426822, 6.3323203, 0.64039452,
-    #                0.1334194, 2.89370163, 0.77631985, 0.16878807, 0.48677897, 0.67278622,
-    #                0.03074749, 0.17259921, 0.38397193])
-    r1 = np.array([6.76570058e-01, 5.53376047e+00, 3.71956853e-01, 1.22657533e-01,
-              7.10569693e+00, 9.83761998e-01, 2.30890984e-01, 5.72963427e+00,
-              6.27018068e-01, -3.47252820e-01, 4.18248885e+00, -6.20176251e-01,
-              -5.41260064e-03, 4.13280427e-01, -4.99018871e-01, 9.38525397e-01,
-              5.56675463e+00, 6.17606805e-01, -1.18915550e-03, 3.33515350e+00,
-              4.66801537e-01, 1.59381269e-01, 5.35073095e-01, -2.02852452e-01,
-              8.41231207e-01, 4.58111681e+00, 3.12997017e-02])
+    reward = np.dot(feat_map, weights)
     # print "rewards is ", reward
-    Q = q_learning(env_obj, reward=r1, alpha=0.1, gamma=0.8)
+    Q = q_learning(env_obj, reward, alpha=0.1, gamma=0.9)
     # print "Q is ", Q
     # print "Q shape is ", len(Q)
     # print "Q values are ", Q.values()
@@ -275,26 +397,6 @@ if __name__ == '__main__':
         policy[int(s)] = np.argmax(Q_for_state)
     print " policy is ", policy
 
-    final_answer_1 = action[int(policy[19])]
-    final_answer_2 = action[int(policy[10])]
-    final_answer_3 = action[int(policy[1])]
-    final_answer_4 = action[int(policy[4])]
-    final_answer_5 = action[int(policy[7])]
-    final_answer_6 = action[int(policy[16])]
-    print "The actions 1 to be taken at state ", states[19], "is :", final_answer_1
-    print "The actions 2 to be taken at state ", states[10], "is :", final_answer_2
-    print "The actions 3 to be taken at state ", states[1], "is :", final_answer_3
-    print "The actions 4 to be taken at state ", states[4], "is :", final_answer_4
-    print "The actions 5 to be taken at state ", states[7], "is :", final_answer_5
-    print "The actions 6 to be taken at state ", states[16], "is :", final_answer_6
-
-
-# First answer
-#  policy is  [ 17.  16.  15.  14.   0.  15.  11.  10.  12.  17.   7.   3.   2.   1.   0.
-#    2.   0.   0.   7.   8.   6.  11.  10.   0.   5.   0.   0.]
-# Second answer
-#  policy is  [ 14.  16.  15.  11.   0.  10.  14.  10.   9.   4.   4.   3.   5.   1.   0.
-#    2.   0.   0.   5.   6.   3.   2.   3.   0.   5.   0.   1.]
 
 
 
