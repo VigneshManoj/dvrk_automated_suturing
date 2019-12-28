@@ -47,7 +47,7 @@ class MaxEntIRL:
             # Computes the gradient
             grad = feature_expectations - feat_map.T.dot(expected_svf)
             # Change the learning rate based on the iteration running
-            if i < 50:
+            if i < 100:
                 learning_rate = 0.1
             else:
                 learning_rate = 0.01
@@ -98,9 +98,10 @@ class MaxEntIRL:
 
     # To convert a state value array into index values
     def get_state_val_index(self, state_val):
-        index_val = abs((state_val[0] + 0.5) * pow(self.grid_size, 2)) + abs(
-            (state_val[1] + 0.5) * pow(self.grid_size, 1)) + \
-                    abs((state_val[2] + 0.5))
+        index_val = abs((state_val[0]*10 + 0.5) * pow(self.grid_size, 2)) + \
+                    abs((state_val[1]*10 + 0.5) * pow(self.grid_size, 1)) + \
+                    abs((state_val[2]*10 + 0.5))
+
         return int(round(index_val * (self.grid_size - 1)))
 
 

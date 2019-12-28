@@ -17,7 +17,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         # The value 11 etc decides how sparse the mesh size of the cube would be
         self.grid_size = grid_size
         self.grid = np.zeros((self.grid_size, self.grid_size, self.grid_size))
-        self.lin_space_limits = np.linspace(-0.5, 0.5, self.grid_size, dtype='float32')
+        self.lin_space_limits = np.linspace(-0.05, 0.05, self.grid_size, dtype='float32')
         # Creates a dictionary for storing the state values
         self.states = {}
         # Creates a dictionary for storing the action values
@@ -47,13 +47,14 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
 
     def create_state_space_model_func(self):
         # Creates the state space of the robot based on the values initialized for linspace by the user
+        print "lin space is ", self.lin_space_limits
         # print "Creating State space "
         state_set = []
         for i_val in self.lin_space_limits:
             for j_val in self.lin_space_limits:
                 for k_val in self.lin_space_limits:
                     # Rounding state values so that the values of the model, dont take in too many floating points
-                    state_set.append([round(i_val, 1), round(j_val, 1), round(k_val, 1)])
+                    state_set.append([round(i_val, 3), round(j_val, 3), round(k_val, 3)])
         # Assigning the dictionary keys
         for i in range(len(state_set)):
             state_dict = {i: state_set[i]}
@@ -64,9 +65,9 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
     def create_action_set_func(self):
         # Creates the action space required for the robot. It is defined by the user beforehand itself
         action_set = []
-        for pos_x in [-0.5, 0, 0.5]:
-            for pos_y in [-0.5, 0, 0.5]:
-                for pos_z in [-0.5, 0, 0.5]:
+        for pos_x in [-0.01, 0, 0.01]:
+            for pos_y in [-0.01, 0, 0.01]:
+                for pos_z in [-0.01, 0, 0.01]:
                     action_set.append([pos_x, pos_y, pos_z])
         # Assigning the dictionary keys
         for i in range(len(action_set)):
@@ -91,9 +92,10 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
 
     # To convert a state value array into index values
     def get_state_val_index(self, state_val):
-        index_val = abs((state_val[0] + 0.5) * pow(self.grid_size, 2)) + \
-                    abs((state_val[1] + 0.5) * pow(self.grid_size, 1)) + \
-                    abs((state_val[2] + 0.5))
+        # Since the starting is 0.05, we multiply it by 10 and then add 0.5 which makes it zero
+        index_val = abs((state_val[0]*10 + 0.5) * pow(self.grid_size, 2)) + \
+                    abs((state_val[1]*10 + 0.5) * pow(self.grid_size, 1)) + \
+                    abs((state_val[2]*10 + 0.5))
         # Returns the index value
         return round(index_val*(self.grid_size-1))
 
@@ -262,7 +264,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
             t_value.tic()
             for q, s in self.map(self.calc_value_for_state, states_range_value):
                 values[s] = q
-                # print "\nvalues is ", values[s]
+                # print "values is ", values[s]
             
             # for s in range(self.n_states):
             #     values[s] = max(
@@ -284,6 +286,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         t_complete_func.toc('Complete function section took')
         return values, policy
     '''
+
     # Calculates the state visitation frequency using the transition matrix
     def compute_state_visitation_frequency(self, trajectories, optimal_policy):
         n_trajectories = len(trajectories)
@@ -329,7 +332,7 @@ def q_learning(env_obj, reward, alpha, gamma):
 
     Q = {}
     # Decides the number of episodes to run the q_learning algorithm
-    num_games = 500
+    num_games = 1500
     # Initialize the total reward being collected
     total_rewards = np.zeros(num_games)
     # Decides how many times the action selected will be randomly (exploration and exploitation)
@@ -414,11 +417,13 @@ if __name__ == '__main__':
     # Pass the gridsize required
     weights = np.array([[1, 1, 0]])
     # term_state = np.random.randint(0, grid_size ** 3)]
-    env_obj = RobotStateUtils(3, weights, 0.9)
+    env_obj = RobotStateUtils(11, weights, 0.9)
     states = env_obj.create_state_space_model_func()
     action = env_obj.create_action_set_func()
     print "State space created is ", states
+    print "State space created is ", len(states)
     print "actions is ", action
+
     '''
     transition_matrix = env_obj.get_transition_mat_deterministic()
     # print "transition_matrix is ", transition_matrix
