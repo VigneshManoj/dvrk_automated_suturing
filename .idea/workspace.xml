@@ -3,8 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="71a93876-613e-4815-b918-977607d6172a" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/max_ent_trial4/max_ent_irl.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial4/max_ent_irl.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/max_ent_trial4/robot_markov_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial4/robot_markov_model.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -28,7 +26,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+    <property name="settings.editor.selected.configurable" value="editor.preferences.fonts.default" />
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -42,8 +40,8 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.log_rosbag_data">
-    <configuration name="features" type="PythonConfigurationType" factoryName="Python" temporary="true">
+  <component name="RunManager" selected="Python.dqn_keras_suturing_main">
+    <configuration name="dqn_keras_suturing_main" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="dvrk_automated_suturing" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -51,11 +49,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/max_ent_pos" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/max_ent_trial5_with_dqn" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/max_ent_pos/features.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/max_ent_trial5_with_dqn/dqn_keras_suturing_main.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -127,7 +125,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="robot_state_utils" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="q_learning_verified" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="dvrk_automated_suturing" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -135,11 +133,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/max_ent_pos" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/max_ent_trial5_with_dqn" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/max_ent_pos/robot_state_utils.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/max_ent_trial5_with_dqn/q_learning_verified.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -150,11 +148,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.dqn_keras_suturing_main" />
+        <item itemvalue="Python.q_learning_verified" />
         <item itemvalue="Python.log_rosbag_data" />
         <item itemvalue="Python.gridworld_environment" />
         <item itemvalue="Python.main (1)" />
-        <item itemvalue="Python.robot_state_utils" />
-        <item itemvalue="Python.features" />
       </list>
     </recent_temporary>
   </component>
