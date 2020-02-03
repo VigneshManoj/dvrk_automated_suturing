@@ -1,5 +1,4 @@
 from dqn_keras_suturing import Agent
-import numpy as np
 from plot_utils import plotLearning
 import numpy as np
 import numba as nb
@@ -52,9 +51,9 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
     def create_action_set_func(self):
         # Creates the action space required for the robot. It is defined by the user beforehand itself
         action_set = []
-        for pos_x in [-0.5, 0, 0.5]:
-            for pos_y in [-0.5, 0, 0.5]:
-                for pos_z in [-0.5, 0, 0.5]:
+        for pos_x in [-0.1, 0, 0.1]:
+            for pos_y in [-0.1, 0, 0.1]:
+                for pos_z in [-0.1, 0, 0.1]:
                     action_set.append([pos_x, pos_y, pos_z])
         # Assigning the dictionary keys
         for i in range(len(action_set)):
@@ -71,7 +70,8 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
     def is_terminal_state(self, state):
 
         # because terminal state is being given in index val
-        if state == self.terminal_state_val:
+        # x = self.states[self.terminal_state_val]
+        if state == self.states[self.terminal_state_val]:
         # If terminal state is being given as a list then if state == self.terminal_state_val:
             # print "You have reached the terminal state "
             return True
@@ -116,7 +116,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
 
         return reward, 1, 2
 
-
+    '''
     # Created feature set1 which basically takes the exponential of sum of individually squared value
     def features_array_prim_func(self, end_pos_x, end_pos_y, end_pos_z):
         feature_1 = np.exp(-(end_pos_x**2))
@@ -136,7 +136,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
     def features_array_sum_func(self, end_pos_x, end_pos_y, end_pos_z):
         feature_4 = np.exp(-(end_pos_x**2 + end_pos_y**2 + end_pos_z**2))
         return feature_4
-
+    '''
     def reset(self):
         # self.pos = np.random.randint(0, len(self.states))
         self.pos = np.array([0, 0, 0])
@@ -159,16 +159,16 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
                                                               resulting_state[2], self.weights)
         # print "reward is ", reward
         # Checks if the resulting state is moving it out of the grid
-        resulting_state_index = self.get_state_val_index(resulting_state)
-        curr_state_index = self.get_state_val_index(curr_state)
+        # resulting_state_index = self.get_state_val_index(resulting_state)
+        # curr_state_index = self.get_state_val_index(curr_state)
 
-        if not self.off_grid_move(resulting_state_index, curr_state_index):
-            return resulting_state, reward, self.is_terminal_state(resulting_state_index), None
+        if not self.off_grid_move(resulting_state.tolist(), curr_state.tolist()):
+            return resulting_state, reward, self.is_terminal_state(resulting_state.tolist()), None
         else:
             # If movement is out of the grid then just return the current state value itself
             # print "*****The value is moving out of the grid in step function*******"
-            return curr_state, reward, self.is_terminal_state(curr_state_index), None
-
+            return curr_state, reward, self.is_terminal_state(curr_state.tolist()), None
+    '''
     def action_space_sample(self):
         # print "random action choice ", np.random.randint(0, len(self.action_space))
         return np.random.randint(0, len(self.action_space))
@@ -206,7 +206,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         sum_trajectories_features.append(trajectory_features)
         # Returns the array of trajectory features and returns the array of all the features
         return np.array(sum_trajectories_features)
-
+    '''
     def get_transition_states_and_probs(self, curr_state, action):
 
         if self.is_terminal_state(curr_state):
@@ -262,7 +262,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         p = np.sum(mu, 1)
         return p
 
-
+'''
 def max_action(Q, state_val, action_values):
     # print "max action action val ", action_values
     q_values = np.array([Q[state_val, a] for a in action_values])
@@ -271,7 +271,7 @@ def max_action(Q, state_val, action_values):
     # print "---max action function action ", action
     # print "max q value ", q_values[action]
     return action_values[action]
-
+'''
 
 def dqn_model(env_obj, weights, alpha, gamma, epsilon):
     lr = 0.0005
@@ -290,7 +290,9 @@ def dqn_model(env_obj, weights, alpha, gamma, epsilon):
         observation = env_obj.reset()
         while not done:
             action = agent.choose_action(observation)
+            # print "action chosen ", action
             observation_, reward, done, info = env_obj.step(observation, action)
+            # print "resulting state is ", observation_
             score += reward
             agent.remember(observation, action, reward, observation_, int(done))
             observation = observation_
@@ -310,7 +312,7 @@ def dqn_model(env_obj, weights, alpha, gamma, epsilon):
 if __name__ == '__main__':
     weights = np.array([[1, 1, 0]])
     # term_state = np.random.randint(0, grid_size ** 3)]
-    env_obj = RobotStateUtils(3, weights)
+    env_obj = RobotStateUtils(10, weights)
     states = env_obj.create_state_space_model_func()
     action = env_obj.create_action_set_func()
     print "State space created is ", states
@@ -318,7 +320,7 @@ if __name__ == '__main__':
     print "states is ", states[0], states[18]
     print "actions are ", action
 
-    dqn_model(env_obj, weights, alpha=0.001, gamma=0.99, epsilon=0.0)
+    dqn_model(env_obj, weights, alpha=0.01, gamma=0.99, epsilon=1.0)
 
     # x = [i+1 for i in range(n_games)]
     # plotLearning(x, scores, eps_history, filename)
