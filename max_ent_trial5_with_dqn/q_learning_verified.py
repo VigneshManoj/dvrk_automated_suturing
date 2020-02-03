@@ -77,7 +77,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
             return False
 
     def off_grid_move(self, new_state, old_state):
-
+        x = self.states.values()
         # Checks if the new state exists in the state space
         if new_state not in self.states.values():
             return True

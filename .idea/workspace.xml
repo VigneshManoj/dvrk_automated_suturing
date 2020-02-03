@@ -3,6 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="71a93876-613e-4815-b918-977607d6172a" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/max_ent_trial5_with_dqn/dqn_keras_suturing_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial5_with_dqn/dqn_keras_suturing_main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/max_ent_trial5_with_dqn/q_learning_verified.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial5_with_dqn/q_learning_verified.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -181,5 +183,51 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/max_ent_trial5_with_dqn/q_learning_verified.py</url>
+          <line>159</line>
+          <option name="timeStamp" value="12" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/max_ent_trial5_with_dqn/dqn_keras_suturing_main.py</url>
+          <line>291</line>
+          <option name="timeStamp" value="14" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/max_ent_trial5_with_dqn/dqn_keras_suturing_main.py</url>
+          <line>293</line>
+          <option name="timeStamp" value="15" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/max_ent_trial5_with_dqn/dqn_keras_suturing_main.py</url>
+          <line>296</line>
+          <option name="timeStamp" value="16" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/max_ent_trial5_with_dqn/dqn_keras_suturing_main.py</url>
+          <line>298</line>
+          <option name="timeStamp" value="18" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/max_ent_trial5_with_dqn/dqn_keras_suturing_main.py</url>
+          <line>300</line>
+          <option name="timeStamp" value="19" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/max_ent_trial5_with_dqn/dqn_keras_suturing_main.py</url>
+          <line>286</line>
+          <option name="timeStamp" value="20" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/max_ent_trial5_with_dqn/dqn_keras_suturing.py</url>
+          <line>80</line>
+          <option name="timeStamp" value="21" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
