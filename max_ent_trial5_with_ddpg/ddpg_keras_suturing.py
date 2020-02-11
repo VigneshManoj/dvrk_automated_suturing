@@ -223,7 +223,7 @@ class Agent(object):
         self.sess = tf.Session()
         self.actor = Actor(alpha, n_actions, 'Actor', input_dims, self.sess,
                            layer1_size, layer2_size, env.action_space_high)
-        self.critic = Critic(beta, n_actions, 'Critic', input_dims,self.sess,
+        self.critic = Critic(beta, n_actions, 'Critic', input_dims, self.sess,
                              layer1_size, layer2_size)
 
         self.target_actor = Actor(alpha, n_actions, 'TargetActor',

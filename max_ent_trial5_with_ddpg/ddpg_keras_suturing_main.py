@@ -17,8 +17,8 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         # It is for created a 3D cube with 3 values specifying each cube node
         # The value 11 etc decides how sparse the mesh size of the cube would be
 
-        self.action_space_low = -1
-        self.action_space_high = 1
+        self.action_space_low = -0.01
+        self.action_space_high = 0.01
         # Numerical values assigned to each action in the dictionary
         # Total Number of states defining the state of the robot
         self.n_states = 2
@@ -85,8 +85,9 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         resulting_state = np.zeros(self.n_states)
         # Finds the resulting state when the action is taken at curr_state
         for i in range(0, self.n_states):
-            resulting_state[i] = curr_state[i] + action[i]
 
+            resulting_state[i] = curr_state[i] + action[i]
+        print "values ", resulting_state, curr_state, action
         # Calculates the reward and returns the reward value, features value and
         reward, done = self.reward_func(resulting_state, self.terminal_state_val)
         # print "reward is ", reward
@@ -107,9 +108,9 @@ def ddpg_model(env_obj, weights, alpha, gamma, epsilon):
         observation = env_obj.reset()
         while not done:
             action = agent.choose_action(observation)
-            print "action chosen ", action
+            # print "action chosen ", action
             observation_, reward, done, info = env_obj.step(observation, action)
-            print "resulting state is ", observation_
+            # print "resulting state is ", observation_
             agent.remember(observation, action, reward, observation_, int(done))
             agent.learn()
             score += reward
