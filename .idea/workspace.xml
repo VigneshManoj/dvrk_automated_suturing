@@ -2,8 +2,18 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="71a93876-613e-4815-b918-977607d6172a" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/max_ent_trial5_with_ddpg_stable_baseline/gym-robot/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/max_ent_trial5_with_ddpg_stable_baseline/gym-robot/gym_robot/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/max_ent_trial5_with_ddpg_stable_baseline/gym-robot/gym_robot/envs/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/max_ent_trial5_with_ddpg_stable_baseline/rl_environment_main.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/max_ent_trial5_with_ddpg_stable_baseline/trial2.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/max_ent_trial5_with_ddpg_stable_baseline/trial3.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dvrk_automated_suturing.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dvrk_automated_suturing.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/max_ent_trial5/features.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial5/features.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/.~lock.check_data_max_ent_trial3_code1.csv#" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/max_ent_trial5_with_ddpg/ddpg_keras_suturing.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial5_with_ddpg/ddpg_keras_suturing.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/max_ent_trial5_with_ddpg/ddpg_keras_suturing_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/max_ent_trial5_with_ddpg/ddpg_keras_suturing_main.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -26,7 +36,7 @@
     <ConfirmationsSetting value="1" id="Add" />
   </component>
   <component name="PropertiesComponent">
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../trial_new3_6" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RunDashboard">
@@ -41,8 +51,8 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.matplotlib_plots">
-    <configuration name="dqn_keras_suturing_main (1)" type="PythonConfigurationType" factoryName="Python" temporary="true">
+  <component name="RunManager" selected="Python.trial3">
+    <configuration name="rl_environment_main" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="dvrk_automated_suturing" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -50,11 +60,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/max_ent_trial5_with_ddpg" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/max_ent_trial5_with_ddpg_stable_baseline" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/max_ent_trial5_with_ddpg/dqn_keras_suturing_main.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/max_ent_trial5_with_ddpg_stable_baseline/rl_environment_main.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -63,7 +73,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="dqn_keras_suturing_main" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="stable_baseline" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="dvrk_automated_suturing" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -71,11 +81,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/max_ent_trial5_with_dqn" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/max_ent_trial5_with_ddpg_stable_baseline" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/max_ent_trial5_with_dqn/dqn_keras_suturing_main.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/max_ent_trial5_with_ddpg_stable_baseline/stable_baseline.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -84,7 +94,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="features" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="trial" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="dvrk_automated_suturing" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -92,11 +102,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/max_ent_trial5" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/max_ent_trial5_with_ddpg_stable_baseline" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/max_ent_trial5/features.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/max_ent_trial5_with_ddpg_stable_baseline/trial1.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -105,7 +115,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="matplotlib_plots" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="trial2" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="dvrk_automated_suturing" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -113,11 +123,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/max_ent_trial5" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/max_ent_trial5_with_ddpg_stable_baseline" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/max_ent_trial5/matplotlib_plots.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/max_ent_trial5_with_ddpg_stable_baseline/trial2.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -126,7 +136,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="q_learning_verified" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="trial3" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="dvrk_automated_suturing" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -134,11 +144,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/max_ent_trial5_with_dqn" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/max_ent_trial5_with_ddpg_stable_baseline" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/max_ent_trial5_with_dqn/q_learning_verified.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/max_ent_trial5_with_ddpg_stable_baseline/trial3.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -149,11 +159,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.matplotlib_plots" />
-        <item itemvalue="Python.features" />
-        <item itemvalue="Python.dqn_keras_suturing_main (1)" />
-        <item itemvalue="Python.dqn_keras_suturing_main" />
-        <item itemvalue="Python.q_learning_verified" />
+        <item itemvalue="Python.trial3" />
+        <item itemvalue="Python.rl_environment_main" />
+        <item itemvalue="Python.trial2" />
+        <item itemvalue="Python.trial" />
+        <item itemvalue="Python.stable_baseline" />
       </list>
     </recent_temporary>
   </component>

@@ -29,10 +29,8 @@ class ReplayBuffer(object):
     def __init__(self, max_size, input_shape, n_actions):
         self.mem_size = max_size
         self.mem_cntr = 0
-        # Input dims change to 3
-        self.state_memory = np.zeros((self.mem_size, 3))
-        # Input dims change to 3
-        self.new_state_memory = np.zeros((self.mem_size, 3))
+        self.state_memory = np.zeros((self.mem_size, input_shape))
+        self.new_state_memory = np.zeros((self.mem_size, input_shape))
         self.action_memory = np.zeros((self.mem_size, n_actions))
         self.reward_memory = np.zeros(self.mem_size)
         self.terminal_memory = np.zeros(self.mem_size, dtype=np.float32)
@@ -88,9 +86,8 @@ class Actor(object):
 
     def build_network(self):
         with tf.variable_scope(self.name):
-            # Input dims change to 3
             self.input = tf.placeholder(tf.float32,
-                                        shape=[None, 3],
+                                        shape=[None, self.input_dims],
                                         name='inputs')
 
             self.action_gradient = tf.placeholder(tf.float32,
@@ -155,9 +152,8 @@ class Critic(object):
 
     def build_network(self):
         with tf.variable_scope(self.name):
-            # Input dims change to 3
             self.input = tf.placeholder(tf.float32,
-                                        shape=[None, 3],
+                                        shape=[None, self.input_dims],
                                         name='inputs')
 
             self.actions = tf.placeholder(tf.float32,
@@ -217,7 +213,7 @@ class Critic(object):
         self.saver.save(self.sess, self.checkpoint_file)
 
 class Agent(object):
-    def __init__(self, alpha, beta, input_dims, tau, env, gamma=0.99, n_actions=27,
+    def __init__(self, alpha, beta, input_dims, tau, env, gamma=0.99, n_actions=2,
                  max_size=1000000, layer1_size=400, layer2_size=300,
                  batch_size=64):
         self.gamma = gamma
@@ -226,13 +222,13 @@ class Agent(object):
         self.batch_size = batch_size
         self.sess = tf.Session()
         self.actor = Actor(alpha, n_actions, 'Actor', input_dims, self.sess,
-                           layer1_size, layer2_size, env.action_space)
-        self.critic = Critic(beta, n_actions, 'Critic', input_dims,self.sess,
+                           layer1_size, layer2_size, env.action_space_high)
+        self.critic = Critic(beta, n_actions, 'Critic', input_dims, self.sess,
                              layer1_size, layer2_size)
 
         self.target_actor = Actor(alpha, n_actions, 'TargetActor',
                                   input_dims, self.sess, layer1_size,
-                                  layer2_size, env.action_space)
+                                  layer2_size, env.action_space_high)
         self.target_critic = Critic(beta, n_actions, 'TargetCritic', input_dims,
                                     self.sess, layer1_size, layer2_size)
 
