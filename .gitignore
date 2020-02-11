@@ -1,0 +1,8 @@
+data/.~lock.check_data_max_ent_trial3_code1.csv#
+data/.~lock.check_data_max_ent_trial5_code1.csv#
+.idea/inspectionProfiles/
+venv/bin
+venv/lib
+venv/lib64
+venv/pyvenv.cfg
+venv_36/include
