@@ -1,14 +1,13 @@
-
-
 import gym
 import numpy as np
 
 from stable_baselines.ddpg.policies import MlpPolicy
 from stable_baselines.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise, AdaptiveParamNoiseSpec
 from stable_baselines import DDPG
+import gym_robot
 
-env = gym.make('MountainCarContinuous-v0')
-
+env = gym.make('robot-v0')
+i = 0
 # the noise objects for DDPG
 n_actions = env.action_space.shape[-1]
 param_noise = None
@@ -25,6 +24,8 @@ model = DDPG.load("ddpg_mountain")
 obs = env.reset()
 while True:
     action, _states = model.predict(obs)
-    obs, rewards, dones, info = env.step(action)
+    obs, rewards, done, info = env.step(action)
+    i += 1
+    if i % 100 == 0:
+        print("current state, action is ", _states, action, " resulting state ", obs)
     env.render()
-
