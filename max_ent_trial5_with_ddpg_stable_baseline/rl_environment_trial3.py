@@ -34,12 +34,12 @@ class RobotEnv(gym.Env):
         #     np.finfo(np.float32).max])
 
         self.action_space = spaces.Box(-1., 1., shape=(self.action_space_dim,), dtype='float32')
-        self.observation_space = spaces.Box(-np.inf, np.inf, shape=(self.action_space_dim,), dtype='float32')
+        self.observation_space = spaces.Box(-1000.0, 1000.0, shape=(self.action_space_dim,), dtype='float32')
         # self.action_space = spaces.Box(
         #     low=np.array([0, 0]), high=np.array([3, 1]), dtype=np.float16)
         self._seed()
         self.viewer = None
-        self.state = np.array([0, 0])
+        self.state = np.array([0., 0.])
 
     def _seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -48,23 +48,24 @@ class RobotEnv(gym.Env):
     def _step(self, action):
         # print("action space is ", self.action_space)
         # Valid action
-        action = np.clip(action, -1, +1).astype(np.float32)
+        action = np.clip(action, -1.0, +1.0).astype(np.float32)
 
         new_state = self.state + action
-        print("current state and action taken ", self.state, action, " result and result shape ", new_state)
+        # print("current state and action taken ", self.state, action, " result and result shape ", new_state)
         self.state = new_state
         goal = self.target
         done = False
+        reward = self.compute_reward(self.state, goal)
         # print("x update and goal is ", x_update, goal[0][1], self.threshold)
-        if new_state[0] - goal[0] < self.threshold and new_state[1] - goal[0] < self.threshold:
+        if abs(new_state[0] - goal[0]) < self.threshold and abs(new_state[1] - goal[0]) < self.threshold:
             done = True
+            reward += 100
 
         # print("shape goal state action is ", goal.shape, np.array([x_val, y_val]).shape, action.shape)
-        reward = self.compute_reward(self.state, goal)
         if abs(new_state[0]) >= 500.0 or abs(new_state[1]) >= 500.0:
             done = True
             reward -= 100
-        print("reward received ", reward)
+        # print("reward received ", reward)
         return new_state, reward, done, {}
 
     def compute_reward(self, achieved_goal, goal):
@@ -74,11 +75,11 @@ class RobotEnv(gym.Env):
 
     def _reset(self):
         # self.state = self.np_random.normal(loc=np.array([0.0, 0.0, 30*(2*np.pi)/360, 0.0]), scale=np.array([0.0, 0.0, 0.0, 0.0]))
-        random_state = np.random.normal(loc=np.array([0.0, 0.0]), scale=np.array([0.2, 0.2]))
-        obs = random_state
+        self.state = np.random.normal(loc=np.array([0.0, 0.0]), scale=np.array([0.02, 0.02]))
+
         # print("random state, random state shape, observation shape is ", random_state, random_state.shape, obs.shape)
 
-        return obs
+        return self.state
 
     def _render(self, mode='ansi', close=False):
         pass

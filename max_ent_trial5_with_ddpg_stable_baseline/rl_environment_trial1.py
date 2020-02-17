@@ -1,159 +1,112 @@
+# //==============================================================================
+# /*
+#     Software License Agreement (BSD License)
+#     Copyright (c) 2019, AMBF
+#     (www.aimlab.wpi.edu)
+
+#     All rights reserved.
+
+#     Redistribution and use in source and binary forms, with or without
+#     modification, are permitted provided that the following conditions
+#     are met:
+
+#     * Redistributions of source code must retain the above copyright
+#     notice, this list of conditions and the following disclaimer.
+
+#     * Redistributions in binary form must reproduce the above
+#     copyright notice, this list of conditions and the following
+#     disclaimer in the documentation and/or other materials provided
+#     with the distribution.
+
+#     * Neither the name of authors nor the names of its contributors may
+#     be used to endorse or promote products derived from this software
+#     without specific prior written permission.
+
+#     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+#     "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+#     LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+#     FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+#     COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+#     INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+#     BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+#     LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+#     CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+#     LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+#     ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+#     POSSIBILITY OF SUCH DAMAGE.
+
+#     \author    <http://www.aimlab.wpi.edu>
+#     \author    <amunawar@wpi.edu>
+#     \author    Adnan Munawar
+#     \version   0.1
+# */
+# //==============================================================================
 import numpy as np
-import pyglet
+from ambf_comm import AmbfEnv
+
+from keras.models import Sequential, Model
+from keras.layers import Dense, Activation, Flatten, Input, Concatenate
+from keras.optimizers import Adam
+
+from rl.agents import DDPGAgent
+from rl.memory import SequentialMemory
+from rl.random import OrnsteinUhlenbeckProcess
 
 
-class ArmEnv(object):
-    viewer = None
-    dt = .1    # refresh rate
-    action_bound = [-1, 1]
-    goal = {'x': 100., 'y': 100., 'l': 40}
-    state_dim = 9
-    action_dim = 2
-
-    def __init__(self):
-        self.arm_info = np.zeros(
-            2, dtype=[('l', np.float32), ('r', np.float32)])
-        self.arm_info['l'] = 100        # 2 arms length
-        self.arm_info['r'] = np.pi/6    # 2 angles information
-        self.on_goal = 0
-
-    def step(self, action):
-        done = False
-        action = np.clip(action, *self.action_bound)
-        self.arm_info['r'] += action * self.dt
-        self.arm_info['r'] %= np.pi * 2    # normalize
-
-        (a1l, a2l) = self.arm_info['l']  # radius, arm length
-        (a1r, a2r) = self.arm_info['r']  # radian, angle
-        a1xy = np.array([200., 200.])    # a1 start (x0, y0)
-        a1xy_ = np.array([np.cos(a1r), np.sin(a1r)]) * a1l + a1xy  # a1 end and a2 start (x1, y1)
-        finger = np.array([np.cos(a1r + a2r), np.sin(a1r + a2r)]) * a2l + a1xy_  # a2 end (x2, y2)
-        # normalize features
-        dist1 = [(self.goal['x'] - a1xy_[0]) / 400, (self.goal['y'] - a1xy_[1]) / 400]
-        dist2 = [(self.goal['x'] - finger[0]) / 400, (self.goal['y'] - finger[1]) / 400]
-        r = -np.sqrt(dist2[0]**2+dist2[1]**2)
-
-        # done and reward
-        if self.goal['x'] - self.goal['l']/2 < finger[0] < self.goal['x'] + self.goal['l']/2:
-            if self.goal['y'] - self.goal['l']/2 < finger[1] < self.goal['y'] + self.goal['l']/2:
-                r += 1.
-                self.on_goal += 1
-                if self.on_goal > 50:
-                    done = True
-        else:
-            self.on_goal = 0
-
-        # state
-        s = np.concatenate((a1xy_/200, finger/200, dist1 + dist2, [1. if self.on_goal else 0.]))
-        return s, r, done
-
-    def reset(self):
-        self.goal['x'] = np.random.rand()*400.
-        self.goal['y'] = np.random.rand()*400.
-        self.arm_info['r'] = 2 * np.pi * np.random.rand(2)
-        self.on_goal = 0
-        (a1l, a2l) = self.arm_info['l']  # radius, arm length
-        (a1r, a2r) = self.arm_info['r']  # radian, angle
-        a1xy = np.array([200., 200.])  # a1 start (x0, y0)
-        a1xy_ = np.array([np.cos(a1r), np.sin(a1r)]) * a1l + a1xy  # a1 end and a2 start (x1, y1)
-        finger = np.array([np.cos(a1r + a2r), np.sin(a1r + a2r)]) * a2l + a1xy_  # a2 end (x2, y2)
-        # normalize features
-        dist1 = [(self.goal['x'] - a1xy_[0])/400, (self.goal['y'] - a1xy_[1])/400]
-        dist2 = [(self.goal['x'] - finger[0])/400, (self.goal['y'] - finger[1])/400]
-        # state
-        s = np.concatenate((a1xy_/200, finger/200, dist1 + dist2, [1. if self.on_goal else 0.]))
-        return s
-
-    def render(self):
-        if self.viewer is None:
-            self.viewer = Viewer(self.arm_info, self.goal)
-        self.viewer.render()
-
-    def sample_action(self):
-        return np.random.rand(2)-0.5    # two radians
+ENV_NAME = 'Torus'
 
 
-class Viewer(pyglet.window.Window):
-    bar_thc = 5
+# Get the environment and extract the number of actions.
+env = AmbfEnv()
+env.make(ENV_NAME)
+env.reset()
+assert len(env.action_space.shape) == 1
+nb_actions = env.action_space.shape[0]
 
-    def __init__(self, arm_info, goal):
-        # vsync=False to not use the monitor FPS, we can speed up training
-        super(Viewer, self).__init__(width=400, height=400, resizable=False, caption='Arm', vsync=False)
-        pyglet.gl.glClearColor(1, 1, 1, 1)
-        self.arm_info = arm_info
-        self.goal_info = goal
-        self.center_coord = np.array([200, 200])
+# Next, we build a very simple model.
+actor = Sequential()
+actor.add(Flatten(input_shape=(1,) + env.observation_space.shape))
+actor.add(Dense(16))
+actor.add(Activation('sigmoid'))
+actor.add(Dense(16))
+actor.add(Activation('sigmoid'))
+actor.add(Dense(16))
+actor.add(Activation('relu'))
+actor.add(Dense(nb_actions))
+actor.add(Activation('linear'))
+print(actor.summary())
 
-        self.batch = pyglet.graphics.Batch()    # display whole batch at once
-        self.goal = self.batch.add(
-            4, pyglet.gl.GL_QUADS, None,    # 4 corners
-            ('v2f', [goal['x'] - goal['l'] / 2, goal['y'] - goal['l'] / 2,                # location
-                     goal['x'] - goal['l'] / 2, goal['y'] + goal['l'] / 2,
-                     goal['x'] + goal['l'] / 2, goal['y'] + goal['l'] / 2,
-                     goal['x'] + goal['l'] / 2, goal['y'] - goal['l'] / 2]),
-            ('c3B', (86, 109, 249) * 4))    # color
-        self.arm1 = self.batch.add(
-            4, pyglet.gl.GL_QUADS, None,
-            ('v2f', [250, 250,                # location
-                     250, 300,
-                     260, 300,
-                     260, 250]),
-            ('c3B', (249, 86, 86) * 4,))    # color
-        self.arm2 = self.batch.add(
-            4, pyglet.gl.GL_QUADS, None,
-            ('v2f', [100, 150,              # location
-                     100, 160,
-                     200, 160,
-                     200, 150]), ('c3B', (249, 86, 86) * 4,))
+action_input = Input(shape=(nb_actions,), name='action_input')
+observation_input = Input(shape=(1,) + env.observation_space.shape, name='observation_input')
+flattened_observation = Flatten()(observation_input)
+x = Concatenate()([action_input, flattened_observation])
+x = Dense(32)(x)
+x = Activation('relu')(x)
+x = Dense(32)(x)
+x = Activation('relu')(x)
+x = Dense(32)(x)
+x = Activation('relu')(x)
+x = Dense(1)(x)
+x = Activation('linear')(x)
+critic = Model(inputs=[action_input, observation_input], outputs=x)
+print(critic.summary())
 
-    def render(self):
-        self._update_arm()
-        self.switch_to()
-        self.dispatch_events()
-        self.dispatch_event('on_draw')
-        self.flip()
+# Finally, we configure and compile our agent. You can use every built-in Keras optimizer and
+# even the metrics!
+memory = SequentialMemory(limit=100000, window_length=1)
+random_process = OrnsteinUhlenbeckProcess(size=nb_actions, theta=.15, mu=0., sigma=.3)
+agent = DDPGAgent(nb_actions=nb_actions, actor=actor, critic=critic, critic_action_input=action_input,
+                  memory=memory, nb_steps_warmup_critic=100, nb_steps_warmup_actor=100,
+                  random_process=random_process, gamma=.99, target_model_update=1e-3)
+agent.compile(Adam(lr=.001, clipnorm=1.), metrics=['mae'])
 
-    def on_draw(self):
-        self.clear()
-        self.batch.draw()
+# Okay, now it's time to learn something! We visualize the training here for show, but this
+# slows down training quite a lot. You can always safely abort the training prematurely using
+# Ctrl + C.
+agent.fit(env, nb_steps=50000, visualize=False, verbose=1, nb_max_episode_steps=200)
 
-    def _update_arm(self):
-        # update goal
-        self.goal.vertices = (
-            self.goal_info['x'] - self.goal_info['l']/2, self.goal_info['y'] - self.goal_info['l']/2,
-            self.goal_info['x'] + self.goal_info['l']/2, self.goal_info['y'] - self.goal_info['l']/2,
-            self.goal_info['x'] + self.goal_info['l']/2, self.goal_info['y'] + self.goal_info['l']/2,
-            self.goal_info['x'] - self.goal_info['l']/2, self.goal_info['y'] + self.goal_info['l']/2)
+# After training is done, we save the final weights.
+agent.save_weights('ddpg_{}_weights.h5f'.format(ENV_NAME), overwrite=True)
 
-        # update arm
-        (a1l, a2l) = self.arm_info['l']     # radius, arm length
-        (a1r, a2r) = self.arm_info['r']     # radian, angle
-        a1xy = self.center_coord            # a1 start (x0, y0)
-        a1xy_ = np.array([np.cos(a1r), np.sin(a1r)]) * a1l + a1xy   # a1 end and a2 start (x1, y1)
-        a2xy_ = np.array([np.cos(a1r+a2r), np.sin(a1r+a2r)]) * a2l + a1xy_  # a2 end (x2, y2)
-
-        a1tr, a2tr = np.pi / 2 - self.arm_info['r'][0], np.pi / 2 - self.arm_info['r'].sum()
-        xy01 = a1xy + np.array([-np.cos(a1tr), np.sin(a1tr)]) * self.bar_thc
-        xy02 = a1xy + np.array([np.cos(a1tr), -np.sin(a1tr)]) * self.bar_thc
-        xy11 = a1xy_ + np.array([np.cos(a1tr), -np.sin(a1tr)]) * self.bar_thc
-        xy12 = a1xy_ + np.array([-np.cos(a1tr), np.sin(a1tr)]) * self.bar_thc
-
-        xy11_ = a1xy_ + np.array([np.cos(a2tr), -np.sin(a2tr)]) * self.bar_thc
-        xy12_ = a1xy_ + np.array([-np.cos(a2tr), np.sin(a2tr)]) * self.bar_thc
-        xy21 = a2xy_ + np.array([-np.cos(a2tr), np.sin(a2tr)]) * self.bar_thc
-        xy22 = a2xy_ + np.array([np.cos(a2tr), -np.sin(a2tr)]) * self.bar_thc
-
-        self.arm1.vertices = np.concatenate((xy01, xy02, xy11, xy12))
-        self.arm2.vertices = np.concatenate((xy11_, xy12_, xy21, xy22))
-
-    # convert the mouse coordinate to goal's coordinate
-    def on_mouse_motion(self, x, y, dx, dy):
-        self.goal_info['x'] = x
-        self.goal_info['y'] = y
-
-
-if __name__ == '__main__':
-    env = ArmEnv()
-    while True:
-        env.render()
-        env.step(env.sample_action())
+# Finally, evaluate our algorithm for 5 episodes.
+agent.test(env, nb_episodes=5, visualize=True, nb_max_episode_steps=200)
