@@ -4,13 +4,13 @@ from stable_baselines.ddpg.policies import MlpPolicy
 from stable_baselines.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise, AdaptiveParamNoiseSpec
 from stable_baselines import DDPG
 import gym_robot
-from ambf_comm import AmbfEnvEdit
+from ambf_psm_env import AmbfPSMEnv
 
 ENV_NAME = 'psm/pitchendlink'
 
 
 # Get the environment and extract the number of actions.
-env = AmbfEnvEdit()
+env = AmbfPSMEnv()
 env.make(ENV_NAME)
 env.reset()
 i = 0
