@@ -8,9 +8,12 @@ from ambf_psm_env import AmbfPSMEnv
 
 ENV_NAME = 'psm/pitchendlink'
 
-
+# Number of actions for your environment
+num_actions_input = 7
+num_states_input = 7
+num_goal_input = 6
 # Get the environment and extract the number of actions.
-env = AmbfPSMEnv()
+env = AmbfPSMEnv(n_actions=num_actions_input, n_states=num_states_input, n_goals=num_goal_input)
 env.make(ENV_NAME)
 env.reset()
 i = 0

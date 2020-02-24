@@ -4,8 +4,18 @@ import numpy as np
 
 from stable_baselines import HER, SAC, DDPG, TD3
 from stable_baselines.ddpg import NormalActionNoise
+from ambf_psm_env import AmbfPSMEnv
 
-env = gym.make("robot-v0")
+ENV_NAME = 'psm/pitchendlink'
+
+# Number of actions for your environment
+num_actions_input = 7
+num_states_input = 7
+num_goal_input = 6
+# Get the environment and extract the number of actions.
+env = AmbfPSMEnv(n_actions=num_actions_input, n_states=num_states_input, n_goals=num_goal_input)
+env.make(ENV_NAME)
+env.reset()
 
 # Create 4 artificial transitions per real transition
 n_sampled_goal = 4
@@ -20,7 +30,7 @@ n_sampled_goal = 4
 
 # DDPG Hyperparams:
 # NOTE: it works even without action noise
-n_actions = 2
+n_actions = env.action_space.shape[0]
 noise_std = 0.2
 action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=noise_std * np.ones(n_actions))
 model = HER('MlpPolicy', env, DDPG, n_sampled_goal=n_sampled_goal,

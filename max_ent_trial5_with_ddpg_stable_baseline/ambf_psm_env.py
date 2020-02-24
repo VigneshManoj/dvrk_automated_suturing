@@ -1,4 +1,5 @@
 from ambf_client import Client
+import gym
 from gym import spaces
 import numpy as np
 import math
@@ -9,8 +10,8 @@ from numpy import linalg as LA
 
 
 class Observation:
-    def __init__(self):
-        self.state = [0]*7
+    def __init__(self, n_states):
+        self.state = [0]*n_states
         self.dist = 0
         self.reward = 0.0
         self.prev_reward = 0.0
@@ -23,8 +24,8 @@ class Observation:
         return np.array(self.state), self.reward, self.is_done, self.info
 
 
-class AmbfPSMEnv:
-    def __init__(self):
+class AmbfPSMEnv(gym.GoalEnv):
+    def __init__(self, n_actions, n_states, n_goals):
         self.obj_handle = Object
         self.world_handle = World
 
@@ -33,11 +34,18 @@ class AmbfPSMEnv:
         self.n_skip_steps = 5
         self.enable_step_throttling = True
         self.action = []
-        self.obs = Observation()
+        self.obs = Observation(n_states=n_states)
         self.action_lims_low = np.array([-0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1])
         self.action_lims_high = np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1])
-        self.action_space = spaces.Box(self.action_lims_low, self.action_lims_high)
-        self.observation_space = spaces.Box(-np.inf, np.inf, shape=(13,))
+        # self.action_space = spaces.Box(self.action_lims_low, self.action_lims_high)
+        self.observation_space = spaces.Box(-np.inf, np.inf, shape=(n_states,))
+        self.action_space = spaces.Box(-1., 1., shape=(n_actions,), dtype='float32')
+        # For applying HER
+        # self.observation_space = spaces.Dict(dict(
+        #     desired_goal=spaces.Box(-np.inf, np.inf, shape=(n_goals,), dtype='float32'),
+        #     achieved_goal=spaces.Box(-np.inf, np.inf, shape=(n_goals,), dtype='float32'),
+        #     observation=spaces.Box(-np.inf, np.inf, shape=(n_states,), dtype='float32'),
+        # ))
 
         # self.base_handle = self.ambf_client.get_obj_handle('PegBase')
         self.prev_sim_step = 0
