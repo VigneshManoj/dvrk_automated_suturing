@@ -42,7 +42,7 @@ class MaxEntIRL:
                 print "Epoch running is ", i
                 print "weights is ", weights
             reward = np.dot(feat_map, weights)
-            optimal_policy, expected_svf = self.find_expected_svf(weights, discount, total_states, trajectories, reward)
+            expected_svf = self.find_expected_svf(discount, total_states, trajectories, reward)
             # Computes the gradient
             grad = feature_expectations - feat_map.T.dot(expected_svf)
             # Change the learning rate based on the iteration running
@@ -76,7 +76,7 @@ class MaxEntIRL:
 
         return feat_exp
 
-    def find_expected_svf(self, weights, discount, total_states, trajectories, reward):
+    def find_expected_svf(self, discount, total_states, trajectories, reward):
         # Creates object of robot markov model
         robot_mdp = RobotMarkovModel()
         # Returns the state and action values of the state space being created
@@ -91,17 +91,21 @@ class MaxEntIRL:
         states = env_obj.create_state_space_model_func()
         action = env_obj.create_action_set_func()
         # print "State space created is ", states
-        P_a = env_obj.get_transition_mat_deterministic()
-        # print "P_a is ", P_a
-        # Calculates the reward and feature for the trajectories being created in the state space
-        policy = env_obj.value_iteration(reward)
+        # V = {}
+        # for state in env_obj.states:
+        #     V[state] = 0
+        # # Reinitialize policy
+        # policy = {}
+        # for state in env_obj.states:
+        #     policy[state] = [key for key in env_obj.action_space]
+        # values_of_states, policy = env_obj.value_iteration(V, policy, 0.01)
         # policy = np.random.randint(27, size=1331)
         # print "policy is ", policy
         # Finds the sum of features of the expert trajectory and list of all the features of the expert trajectory
-        expected_svf = env_obj.compute_state_visitation_frequency(trajectories, policy)
+        expected_svf = env_obj.compute_state_visitation_frequency(trajectories)
 
         # Returns the policy, state features of the trajectories considered in the state space and expected svf
-        return policy, expected_svf
+        return expected_svf
 
     def get_state_val_index(self, state_val):
         index_val = abs((state_val[0] + 5) * pow(self.grid_size, 2)) + abs(

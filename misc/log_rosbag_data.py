@@ -8,6 +8,10 @@ import shlex
 import rospy
 from std_msgs.msg import Time
 from std_msgs.msg import Empty
+from geometry_msgs.msg import PoseStamped
+from std_msgs.msg import String
+from sensor_msgs.msg import JointState
+
 import time
 
 import os
@@ -28,6 +32,19 @@ class UserStudy:
         self._active = False
         self._time_pub_thread = 0
         self._my_bag = 0
+        self._traj_count = 0
+        self._traj_bag_process = None
+
+        self._PSM2_JS = None
+        self._MTML_Cart_States = None
+        self._PSM2_Cart_States = None
+
+        # self._PSM2_cart_sub = self.sub_temp_pub_psm_cart = rospy.Subscriber('/dvrk/PSM2/position_cartesian_current'.format(self._traj_count),
+        #                                          PoseStamped, self.PSM2CartCb)
+        # self._PSM2_js_sub = self.sub_temp_pub_psm_js = rospy.Subscriber('/dvrk/PSM2/current_state_{}'.format(self._traj_count), JointState,
+        #                                        self.PSM2JointStatesCb)
+        # self._MTML_cart_sub = self.sub_temp_pub_mtm_cart = rospy.Subscriber('/dvrk/MTML/position_cartesian_current'.format(self._traj_count),
+        #                                          PoseStamped, self.MTMLCartCb)
 
         self._topic_names = ["/dvrk/ECM/current_state",
                              "/dvrk/ECM/error",
@@ -38,6 +55,7 @@ class UserStudy:
                              "/dvrk/ECM/set_wrench_body",
                              "/dvrk/MTML/current_state",
                              "/dvrk/MTML/error",
+                             "/dvrk/MTML/state_joint_current",
                              "/dvrk/MTML/jacobian_body",
                              "/dvrk/MTML/jacobian_spatial",
                              "/dvrk/MTML/position_cartesian_current",
@@ -64,6 +82,8 @@ class UserStudy:
                              "/dvrk/PSM2/joint_velocity_ratio",
                              "/dvrk/PSM2/position_cartesian_current",
                              "/dvrk/PSM2/set_wrench_body",
+                             "/dvrk/PSM2/state_joint_current",
+                             "/dvrk/PSM2/state_jaw_current",
                              "/dvrk/footpedals/coag",
                              "/dvrk/footpedals/clutch",
                              "/dvrk/MTMR/set_wrench_body"]
@@ -75,7 +95,7 @@ class UserStudy:
         for name in self._topic_names:
             self._topic_names_str = self._topic_names_str + ' ' + name
 
-    def call(self):
+    def call(self, filepath=None):
         if self._rosbag_filepath is 0:
             self._active = True
             self._start_time = rospy.Time.now()
@@ -89,16 +109,31 @@ class UserStudy:
             print "Running Command", command
             command = shlex.split(command)
             self._rosbag_process = subprocess.Popen(command)
+        elif filepath is not None:
+            print "Start Recording Trajectories"
+            fp = '/home/vignesh/Desktop/user_study_data/' + filepath
+            command = "rosbag record -O" + ' ' + fp + self._topic_names_str
+            print "Starting trajectory id: {} recording".format(self._traj_count)
+            command = shlex.split(command)
+            self._traj_bag_process = subprocess.Popen(command,shell=True)
         else:
             print "Already recording a ROSBAG file, please save that first before starting a new record"
 
-    def save(self):
+    def save(self, fp=None):
 
         if self._rosbag_filepath is not 0:
 
             # self._active = False
-            filepath = self._rosbag_filepath
-            self._rosbag_filepath = 0
+            filepath = None
+            if fp is not None:
+                filepath = fp
+                print "Stopping id: {} recording".format(self._traj_count)
+                self._traj_count += 1
+                self._traj_bag_process.kill()
+                return
+            else:
+                filepath= self._rosbag_filepath
+                self._rosbag_filepath = 0
 
             node_prefix = "/record"
             # Adapted from http://answers.ros.org/question/10714/start-and-stop-rosbag-within-a-python-script/
@@ -115,6 +150,7 @@ class UserStudy:
 
         else:
             print("You should start recording first before trying to save")
+        return
 
     def time_pub_thread_func(self):
 
@@ -122,6 +158,20 @@ class UserStudy:
             self._time_msg = rospy.Time.now() - self._start_time
             self._time_pub.publish(self._time_msg)
             time.sleep(0.05)
+
+    # def cart_logging_thread(self):
+    #     pub_temp_pub_psm_cart = rospy.Publisher('/dvrk/PSM2/position_cartesian_current_{}'.format(self._traj_count),
+    #                                             PoseStamped, queue_size=10)
+    #     pub_temp_pub_psm_js = rospy.Publisher('/dvrk/PSM2/current_state_{}'.format(self._traj_count), JointState,
+    #                                           queue_size=10)
+    #     pub_temp_pub_mtm_cart = rospy.Publisher('/dvrk/MTML/position_cartesian_current'.format(self._traj_count),
+    #                                             PoseStamped, queue_size=10)
+    #     PSM2JSMsg = JointState()
+    #     PSM2CartMsg = PoseStamped()
+    #     MTMLCartMsg = PoseStamped()
+    #
+    #     while self._active:
+
 
     def dvrk_power_on(self):
         self._dvrk_on_pub.publish(Empty())
@@ -135,7 +185,13 @@ class UserStudy:
         self._dvrk_home_pub.publish(Empty())
         time.sleep(0.1)
 
+    def traj_start_recording(self):
+        self.call('exp_{}'.format(self._traj_count))
+        time.sleep(0.1)
 
+    def traj_stop_recording(self):
+        self.save('exp_{}'.format(self._traj_count))
+        time.sleep(0.1)
 
 
 study = UserStudy()
@@ -169,6 +225,9 @@ b1.set('TRAINING')
 button_start = Button(master, text="Start Record", bg="green", fg="white", height=8, width=20, command=study.call)
 button_stop = Button(master, text="Stop Record (SAVE)", bg="red", fg="white", height=8, width=20, command=study.save)
 button_destroy = Button(master, text="Close App", bg="black", fg="white", height=8, width=20, command=master.destroy)
+
+button_start_traj_recording = Button(master, text="TRAJ START", bg="green", fg="white", height=4, width=10, command=study.traj_start_recording)
+button_stop_traj_recording = Button(master, text="TRAJ STOP", bg="red", fg="white", height=4, width=10, command=study.traj_stop_recording)
 
 
 button_on = Button(master, text="DVRK ON", bg="green", fg="white", height=4, width=10, command=study.dvrk_power_on)

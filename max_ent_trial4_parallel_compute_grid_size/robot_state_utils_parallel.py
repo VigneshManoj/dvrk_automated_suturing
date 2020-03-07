@@ -6,18 +6,20 @@ import numpy.random as rn
 from pytictoc import TicToc
 
 
-class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
+class RobotStateUtilsP(concurrent.futures.ThreadPoolExecutor):
     def __init__(self, grid_size, discount, terminal_state_val_from_trajectory):
-        super(RobotStateUtils, self).__init__(max_workers=8)
+        super(RobotStateUtilsP, self).__init__(max_workers=8)
         # Model here means the 3D cube being created
         # linspace limit values: limit_values_pos = [[-0.009, -0.003], [0.003, 007], [-0.014, -0.008]]
         # Creates the model state space based on the maximum and minimum values of the dataset provided by the user
         # It is for created a 3D cube with 3 values specifying each cube node
         # The value 11 etc decides how sparse the mesh size of the cube would be
         self.grid_size = grid_size
-        self.lin_space_limits_x = np.linspace(-0.03, 0.02, self.grid_size, dtype='float32')
-        self.lin_space_limits_y = np.linspace(0.025, 0.075, self.grid_size, dtype='float32')
-        self.lin_space_limits_z = np.linspace(-0.14, -0.09, self.grid_size, dtype='float32')
+        # self.lin_space_limits_x = np.linspace(-0.03, 0.02, self.grid_size, dtype='float32')
+        # self.lin_space_limits_y = np.linspace(0.025, 0.075, self.grid_size, dtype='float32')
+        # self.lin_space_limits_z = np.linspace(-0.14, -0.09, self.grid_size, dtype=
+        self.lin_space_limits = np.linspace(-0.5, 0.5, self.grid_size, dtype='float32')
+
         # Creates a dictionary for storing the state values
         self.states = {}
         # Creates a dictionary for storing the action values
@@ -30,7 +32,7 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         # Deterministic or stochastic transition environment
         self.trans_prob = 1
         # Initialize number of states and actions in the state space model created
-        self.n_states = grid_size**3
+        self.n_states = grid_size ** 3
         self.n_actions = 27
         self.gamma = discount
         self.temp_state = 0
@@ -40,9 +42,9 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         # Creates the state space of the robot based on the values initialized for linspace by the user
         # print "Creating State space "
         state_set = []
-        for i_val in self.lin_space_limits_x:
-            for j_val in self.lin_space_limits_y:
-                for k_val in self.lin_space_limits_z:
+        for i_val in self.lin_space_limits:
+            for j_val in self.lin_space_limits:
+                for k_val in self.lin_space_limits:
                     # Rounding state values so that the values of the model, dont take in too many floating points
                     state_set.append([round(i_val, 4), round(j_val, 4), round(k_val, 4)])
         # Assigning the dictionary keys
@@ -55,9 +57,9 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
     def create_action_set_func(self):
         # Creates the action space required for the robot. It is defined by the user beforehand itself
         action_set = []
-        for pos_x in [-0.005, 0, 0.005]:
-            for pos_y in [-0.005, 0, 0.005]:
-                for pos_z in [-0.005, 0, 0.005]:
+        for pos_x in [-0.5, 0, 0.5]:
+            for pos_y in [-0.5, 0, 0.5]:
+                for pos_z in [-0.5, 0, 0.5]:
                     action_set.append([pos_x, pos_y, pos_z])
         # Assigning the dictionary keys
         for i in range(len(action_set)):
@@ -67,9 +69,9 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         return self.action_space
 
     def get_state_val_index(self, state_val):
-        index_val = abs((state_val[0] + 0.03) / 0.005 * pow(self.grid_size, 2)) + \
-                    abs((state_val[1] - 0.025) / 0.005 * pow(self.grid_size, 1)) + \
-                    abs((state_val[2] + 0.14) / 0.005)
+        index_val = abs((state_val[0] + 0.5) / 0.5 * pow(self.grid_size, 2)) + \
+                    abs((state_val[1] + 0.5) / 0.5 * pow(self.grid_size, 1)) + \
+                    abs((state_val[2] + 0.5) / 0.5)
         return int(round(index_val))
 
     def is_terminal_state(self, state):
@@ -93,9 +95,11 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         if np.sum(sum_feat) == 0:
             return True
         # if trying to wrap around the grid, also the reason for the for x in _ is because old_state is a list
-        elif (x % self.grid_size for x in old_state) == 0 and (y % self.grid_size for y in new_state) == self.grid_size - 1:
+        elif (x % self.grid_size for x in old_state) == 0 and (y % self.grid_size for y in
+                                                               new_state) == self.grid_size - 1:
             return True
-        elif (x % self.grid_size for x in old_state) == self.grid_size - 1 and (y % self.grid_size for y in new_state) == 0:
+        elif (x % self.grid_size for x in old_state) == self.grid_size - 1 and (y % self.grid_size for y in
+                                                                                new_state) == 0:
             return True
         else:
             # If there are no issues with the new state value then return false, negation is present on the other end
@@ -167,34 +171,12 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
         print(i, 'sweeps of state space for value iteration')
         return V, policy
 
-    def compute_state_visitation_frequency(self, trajectories):
-        n_trajectories = len(trajectories)
-        total_states = len(trajectories[0])
-        d_states = len(trajectories[0][0])
-        T = total_states
-        # mu[s, t] is the prob of visiting state s at time t
-        mu = np.zeros([self.n_states, T])
-        # print "mu is ", mu
-        for trajectory in trajectories:
-            # print "trajectory is ", trajectory
-            # To get the values of the trajectory in the state space created
-            trajectory_index = self.get_state_val_index(trajectory[0])
-            # int is added because the index returned is float and the index value for array has to be integer
-            mu[int(trajectory_index), 0] += 1
-        mu[:, 0] = mu[:, 0] / n_trajectories
-
-        for s in range(self.n_states):
-            for t in range(T - 1):
-                # Computes the mu value for each state once the optimal action is taken
-                mu[s, t + 1] = sum([mu[pre_s, t] for pre_s in range(self.n_states)])
-        p = np.sum(mu, 1)
-        return p
-
 
 if __name__ == '__main__':
-    goal = np.array([0.005, 0.055, -0.125])
+    # goal = np.array([0.005, 0.055, -0.125])
+    goal = np.array([0.5, 0.5, 0])
     # term_state = np.random.randint(0, grid_size ** 3)]
-    env_obj = RobotStateUtils(11, 0.9, goal)
+    env_obj = RobotStateUtilsP(11, 0.9, goal)
     states = env_obj.create_state_space_model_func()
     action = env_obj.create_action_set_func()
     print "State space created is ", states
@@ -229,7 +211,6 @@ if __name__ == '__main__':
 
     print(V)
     print(policy)
-
 
 '''
 class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
@@ -451,11 +432,11 @@ class RobotStateUtils(concurrent.futures.ThreadPoolExecutor):
                 values[s] = q
                 print "\nvalues is ", values[s]
 '''
-            # for s in range(self.n_states):
-            #     values[s] = max(
-            #         [sum([P_a[s, a, s1] * (rewards[s] + self.gamma * values_tmp[s1])
-            #               for s1 in range(self.n_states)])
-            #          for a in range(self.n_actions)])
+# for s in range(self.n_states):
+#     values[s] = max(
+#         [sum([P_a[s, a, s1] * (rewards[s] + self.gamma * values_tmp[s1])
+#               for s1 in range(self.n_states)])
+#          for a in range(self.n_actions)])
 '''
             # t_value.toc('Value function section took')
                 # print "values ", values[s]
@@ -541,8 +522,8 @@ if __name__ == '__main__':
     print "svf shape is ", svf.shape
 
     print "expected svf is ", feat.dot(svf).reshape(3, 1)
-    
-    
+
+
     # x = [-0.5, 0.2, 0.4]
     # row_column = obj_state_util.get_state_val_index(x)
     # print "index val", row_column, x
